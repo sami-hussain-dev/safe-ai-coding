@@ -5,7 +5,7 @@
   --ink: #232838; --muted: #5b6275; --line: #dde2ee; --paper: #ffffff; --soft: #f5f7fc; --code-bg: #0f1630; --code-ink: #e6ebff;
 }
 @page { size: A4; margin: 17mm 15mm 19mm 15mm;
-  @bottom-left { content: "safe-ai-coding 2.0"; font: 8pt "Segoe UI", Calibri, Arial, sans-serif; color: #8a90a3; }
+  @bottom-left { content: "safe-ai-coding 2.1"; font: 8pt "Segoe UI", Calibri, Arial, sans-serif; color: #8a90a3; }
   @bottom-right { content: counter(page) " / " counter(pages); font: 8pt "Segoe UI", Calibri, Arial, sans-serif; color: #8a90a3; } }
 @page :first { margin: 0; @bottom-left { content: none } @bottom-right { content: none } }
 * { box-sizing: border-box; }

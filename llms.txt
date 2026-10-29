@@ -15,7 +15,8 @@
 ## Install
 
 - Claude Code plugin: /plugin marketplace add sami-hussain-dev/safe-ai-coding, then /plugin install safe-ai-coding@safe-ai-coding
-- Or: git clone --depth 1 https://github.com/sami-hussain-dev/safe-ai-coding.git ~/.claude/skills/safe-ai-coding
+- Or: git clone --depth 1 https://github.com/sami-hussain-dev/safe-ai-coding.git ~/safe-ai-coding
+cp -r ~/safe-ai-coding/skills/safe-ai-coding ~/.claude/skills/
 
 ## Key files
 

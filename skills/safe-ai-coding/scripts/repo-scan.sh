@@ -110,6 +110,17 @@ while IFS= read -r f; do
   fi
   out=$(grep -nE '"(hooks|PreToolUse|PostToolUse|SessionStart|SessionEnd|UserPromptSubmit|Stop|SubagentStop|Notification|PreCompact|command|args|url|allow|additionalDirectories|apiKeyHelper|env|enabledMcpjsonServers|runOn|postCreateCommand|postStartCommand|postAttachCommand|initializeCommand|onCreateCommand|updateContentCommand)"' "$f" 2>/dev/null)
   if [ -n "$out" ]; then hits=1; flag "$f"; printf '%s\n' "$out" | show; fi
+  case "$f" in
+    *mcp.json)
+      # MCP servers: unpinned auto-installed packages, plain-HTTP servers and secrets written into the file.
+      out=$(grep -nE '"-y"|"--yes"' "$f" 2>/dev/null | grep -vE '@[0-9]+\.[0-9]')
+      [ -n "$out" ] && { hits=1; flag "$f  starts MCP servers with npx -y and no pinned version: a new, unreviewed release runs on the next start"; printf '%s\n' "$out" | show; }
+      out=$(grep -niE '"url"[[:space:]]*:[[:space:]]*"http://' "$f" 2>/dev/null | grep -vE 'localhost|127\.0\.0\.1')
+      [ -n "$out" ] && { hits=1; flag "$f  talks to an MCP server over plain HTTP: requests and answers can be read or changed in transit"; printf '%s\n' "$out" | show; }
+      out=$(grep -nE '"[A-Za-z0-9_]*(KEY|TOKEN|SECRET|PASSWORD|PASS)[A-Za-z0-9_]*"[[:space:]]*:[[:space:]]*"[^"$]{8,}"' "$f" 2>/dev/null | LC_ALL=C sed -E 's/(:[[:space:]]*"[^"]{2})[^"]*"/\1****"/')
+      [ -n "$out" ] && { hits=1; flag "$f  contains a secret written in the file (use an environment variable instead):"; printf '%s\n' "$out" | show; }
+      ;;
+  esac
 done < "$TMP/settings"
 while IFS= read -r f; do
   isself "$f" && continue
@@ -272,6 +283,36 @@ if [ "$ISGIT" = 1 ]; then
 else
   note "not a git repository: skipped"
 fi
+
+# ---------------------------------------------------------------------------
+section "10. Secrets and open data rules already in the repository"
+hits=0
+if [ "$ISGIT" = 1 ]; then
+  G ls-files 2>/dev/null | grep -vE '(^|/)(vendor|node_modules|bower_components)/|\.(min\.js|min\.css|map|lock|png|jpe?g|gif|ico|pdf|zip|woff2?|ttf|eot|svg)$|(^|/)(package-lock\.json|yarn\.lock|composer\.lock)$' > "$TMP/tracked"
+else
+  find . -path ./.git -prune -o -path '*/node_modules' -prune -o -path '*/vendor' -prune -o -type f -print 2>/dev/null | sed 's|^\./||' > "$TMP/tracked"
+fi
+grep -E '(^|/)\.env(\.[^/]*)?$' "$TMP/tracked" | grep -vE '\.(example|sample|dist|template|defaults?)$' > "$TMP/envs"
+if [ -s "$TMP/envs" ]; then hits=1; flag "environment files are committed (they usually hold passwords and keys; rotate them, then remove them from git):"; show < "$TMP/envs"; fi
+SECRET_RE='AKIA[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9]{36,}|github_pat_[A-Za-z0-9_]{40,}|glpat-[A-Za-z0-9_-]{20,}|xox[abprs]-[A-Za-z0-9-]{10,}|AIza[0-9A-Za-z_-]{35}|(sk|rk)_live_[0-9A-Za-z]{16,}|sk-(proj|ant|or-v1)-[A-Za-z0-9_-]{30,}|(hf|gsk|r8)_[A-Za-z0-9]{30,}|-----BEGIN [A-Z ]*PRIVATE KEY-----'
+while IFS= read -r f; do
+  isself "$f" && continue
+  [ -f "$f" ] && [ ! -L "$f" ] && printf '%s\0' "$f"
+done < "$TMP/tracked" | xargs -0 grep -nIHE -- "$SECRET_RE" 2>/dev/null \
+  | LC_ALL=C sed -E 's/([A-Za-z0-9_-]{4})[A-Za-z0-9_-]{12,}/\1****/g' | cut -c1-200 > "$TMP/secrets"
+if [ -s "$TMP/secrets" ]; then
+  hits=1; flag "$(wc -l < "$TMP/secrets" | tr -d ' ') line(s) contain what look like real keys or tokens (values masked). Treat each as leaked: rotate it, then remove it:"
+  head -n 20 "$TMP/secrets" | show
+fi
+grep -E '(^|/)[^/]*\.rules$|(^|/)[^/]*rules[^/]*\.json$|(^|/)database[^/]*\.json$' "$TMP/tracked" | while IFS= read -r f; do
+  grep -nE 'if[[:space:]]+true|"\.(read|write)"[[:space:]]*:[[:space:]]*(true|"true")' "$f" 2>/dev/null | sed "s|^|$f:|"
+done > "$TMP/openrules"
+if [ -s "$TMP/openrules" ]; then hits=1; flag "Firebase rules open to everyone (anyone on the internet can read or write that data):"; show < "$TMP/openrules"; fi
+grep -E '(^|/)\.env' "$TMP/tracked" | while IFS= read -r f; do
+  grep -nE '^(VITE|NEXT_PUBLIC|REACT_APP|EXPO_PUBLIC|NUXT_PUBLIC|GATSBY)_[A-Z0-9_]*(SECRET|PRIVATE|SERVICE_ROLE|PASSWORD|ADMIN_KEY)' "$f" 2>/dev/null | sed -E "s|^|$f:|; s/=.*/=****/"
+done > "$TMP/publicvars"
+if [ -s "$TMP/publicvars" ]; then hits=1; flag "secrets in public build variables (VITE_/NEXT_PUBLIC_/REACT_APP_ values are shipped to every browser):"; show < "$TMP/publicvars"; fi
+[ "$hits" = 0 ] && note "none found"
 
 # ---------------------------------------------------------------------------
 section "Result"

@@ -80,17 +80,19 @@ a { color:var(--indigo); }
   <p>Type these two lines inside Claude Code:</p>
 <pre>/plugin marketplace add sami-hussain-dev/safe-ai-coding
 /plugin install safe-ai-coding@safe-ai-coding</pre>
-  <h3>Option 2: one git command</h3>
+  <h3>Option 2: with git (any Claude Code version)</h3>
 <pre># macOS, Linux or Git Bash
-git clone --depth 1 https://github.com/sami-hussain-dev/safe-ai-coding.git ~/.claude/skills/safe-ai-coding
+git clone --depth 1 https://github.com/sami-hussain-dev/safe-ai-coding.git ~/safe-ai-coding
+cp -r ~/safe-ai-coding/skills/safe-ai-coding ~/.claude/skills/
 
 # Windows PowerShell
-git clone --depth 1 https://github.com/sami-hussain-dev/safe-ai-coding.git "$env:USERPROFILE\.claude\skills\safe-ai-coding"</pre>
-  <p>Start a new Claude Code session (or run <code>/reload-plugins</code>). That is all. Pick one option, not both.</p>
+git clone --depth 1 https://github.com/sami-hussain-dev/safe-ai-coding.git "$HOME\safe-ai-coding"
+Copy-Item -Recurse "$HOME\safe-ai-coding\skills\safe-ai-coding" "$HOME\.claude\skills\"</pre>
+  <p>Start a new Claude Code session. That is all. Pick one option, not both. With the git copy, the command is <code>/safe-ai-coding</code> instead of <code>/safe-ai-coding:safe-ai-coding</code>.</p>
   <table>
     <tr><th style="width:18%">To</th><th>Plugin</th><th>Git</th></tr>
-    <tr><td>Update</td><td><code>/plugin</code> &rarr; Marketplaces &rarr; safe-ai-coding &rarr; Update</td><td><code>git -C ~/.claude/skills/safe-ai-coding pull</code></td></tr>
-    <tr><td>Remove</td><td><code>/plugin uninstall safe-ai-coding@safe-ai-coding</code></td><td>Delete the folder</td></tr>
+    <tr><td>Update</td><td><code>/plugin</code> &rarr; Marketplaces &rarr; safe-ai-coding &rarr; Update</td><td><code>git -C ~/safe-ai-coding pull</code>, then the copy command again</td></tr>
+    <tr><td>Remove</td><td><code>/plugin uninstall safe-ai-coding@safe-ai-coding</code></td><td>Delete <code>~/.claude/skills/safe-ai-coding</code></td></tr>
   </table>
 
 </div></section>

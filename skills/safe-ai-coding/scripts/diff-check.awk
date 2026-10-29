@@ -103,7 +103,7 @@ function kind(f,    lf) {
     if (lf ~ /\.sql$/) return "sql"
     if (lf ~ /\.(sh|bash|zsh|ps1|psm1|bat|cmd)$/) return "shell"
     if (lf ~ /\.(html?|twig|jinja2?|j2|erb|ejs|hbs|mustache|cshtml|razor|jsp)$/) return "tpl"
-    if (lf ~ /\.(json|ya?ml|toml|ini|xml|conf|cfg|properties|env|lock)$/ || lf ~ /(^|\/)(\.env[^\/]*|\.npmrc|\.yarnrc|\.gitignore|requirements[^\/]*\.txt|pip\.(conf|ini)|gemfile|go\.mod)$/) return "config"
+    if (lf ~ /\.(json|ya?ml|toml|ini|xml|conf|cfg|properties|env|lock|rules|tf|hcl)$/ || lf ~ /(^|\/)(\.env[^\/]*|\.npmrc|\.yarnrc|\.gitignore|requirements[^\/]*\.txt|pip\.(conf|ini)|gemfile|go\.mod)$/) return "config"
     if (lf ~ /(^|\/)(dockerfile|makefile|procfile|jenkinsfile|vagrantfile)$/) return "shell"
     return "other"
 }
@@ -171,7 +171,8 @@ function namestatus(line,    a, c, st, p, lp) {
         out("INFO", p, 0, "lock file changed: confirm it matches an intended dependency change", "")
     if (lp ~ /(^|\/)(\.npmrc|\.yarnrc(\.yml)?|pip\.(conf|ini)|\.pip\/|nuget\.config)$/)
         out("WARN", p, 0, "package registry configuration changed: packages may now come from somewhere else", "")
-    if (st == "A" && lp ~ /\.(sql|dump|bak|sqlite3?|db|mdb|csv|xlsx?)$/ && !ismig(p))
+    if (st == "A" && !ismig(p) && (lp ~ /\.(dump|bak|sqlite3?|db|mdb|csv|xlsx?)$/ ||
+        (lp ~ /\.sql(\.gz)?$/ && lp ~ /(dump|backup|bak|export|data|prod|live|full)[^\/]*$/)))
         out("WARN", p, 0, "data file added: it may contain real personal data", "")
     if (lp ~ /(^|\/)(\.github\/workflows\/|\.gitlab-ci\.yml$|jenkinsfile$|azure-pipelines\.yml$|bitbucket-pipelines\.yml$|\.circleci\/)/)
         out("WARN", p, 0, "CI/CD pipeline changed: it runs with deploy credentials", "")
@@ -211,6 +212,7 @@ function added(f, l, t,    lt, k, pa, pl, cmt) {
     commands(f, l, t, lt)
     manifest(f, l, t, lt)
     cfgsec(f, l, t, lt)
+    cloudsec(f, l, t, lt, k)
     if (k == "config") { configline(f, l, t, lt); return }
     if (k == "other" || k == "shell") return
     cmt = (t ~ /^[ \t]*(\/\/|#|\*|\/\*|<!--|\{\{--|--[ \t])/)
@@ -244,7 +246,9 @@ function secrets(f, l, t, lt,    v, lf) {
     if (match(t, /xox[abprs]-[A-Za-z0-9-]+/) && RLENGTH >= 15) { out("HIGH", f, l, "Slack token", mask(t)); return }
     if (match(t, /AIza[0-9A-Za-z_-]+/) && RLENGTH >= 39) { out("HIGH", f, l, "Google API key", mask(t)); return }
     if (match(t, /(sk|rk)_live_[0-9A-Za-z]+/) && RLENGTH >= 20) { out("HIGH", f, l, "Stripe live key", mask(t)); return }
-    if (match(t, /sk-(proj-|ant-)?[A-Za-z0-9_-]+/) && RLENGTH >= 40) { out("HIGH", f, l, "API secret key", mask(t)); return }
+    if (match(t, /sk-(proj-|ant-|or-v1-)?[A-Za-z0-9_-]+/) && RLENGTH >= 40) { out("HIGH", f, l, "AI provider or API secret key", mask(t)); return }
+    if (match(t, /(hf_|gsk_|r8_|xai-)[A-Za-z0-9]+/) && RLENGTH >= 30) { out("HIGH", f, l, "AI provider token (Hugging Face, Groq, Replicate or xAI)", mask(t)); return }
+    if (match(t, /(SG[.][A-Za-z0-9_-]+[.][A-Za-z0-9_-]+|AC[a-f0-9]+|sq0csp-[A-Za-z0-9_-]+|shpat_[a-f0-9]+)/) && RLENGTH >= 32) { out("HIGH", f, l, "service API key (SendGrid, Twilio, Square or Shopify)", mask(t)); return }
     if (t ~ /_authToken[ \t]*=/ && t !~ /_authToken[ \t]*=[ \t]*[$]\{/) { out("HIGH", f, l, "npm auth token in the change", mask(t)); return }
     if (match(t, /eyJ[A-Za-z0-9_-]+[.]eyJ[A-Za-z0-9_-]+[.][A-Za-z0-9_-]+/) && RLENGTH >= 60) { out("WARN", f, l, "JWT token in the change", mask(t)); return }
     if (t ~ /[a-zA-Z][a-zA-Z0-9+.-]*:\/\/[^\/ :@"']+:[^\/ @"']+@/ && t !~ /:\/\/[^\/ :@"']+:([*x]+|password|pass|secret|[$%{<])/)
@@ -323,6 +327,39 @@ function cfgsec(f, l, t, lt) {
         out("WARN", f, l, "PHP setting that exposes errors or allows remote includes", t)
 }
 
+# Cloud and backend-as-a-service settings that leave data open: the usual cause of
+# leaks in quickly built (often AI-built) apps.
+function cloudsec(f, l, t, lt, k,    lf) {
+    lf = tolower(f)
+    if (lt ~ /allow[ \t]+(read|write|get|list|create|update|delete)[^;:]*:[ \t]*if[ \t]+true[ \t]*;?/)
+        out("HIGH", f, l, "Firebase security rule allows everyone (if true): the whole collection or bucket is public", t)
+    if (lf ~ /rules[^\/]*\.json$|database[^\/]*\.json$/ && lt ~ /"[.](read|write)"[ \t]*:[ \t]*(true|"true")/)
+        out("HIGH", f, l, "Firebase Realtime Database rule open to everyone", t)
+    if (lt ~ /disable[ \t]+row[ \t]+level[ \t]+security/)
+        out("HIGH", f, l, "row level security switched off: every API user can read or change every row", t)
+    if (lt ~ /create[ \t]+policy/ && lt ~ /(using|with[ \t]+check)[ \t]*[(][ \t]*true[ \t]*[)]/)
+        out("WARN", f, l, "database policy that allows every row (using (true)): confirm the table is meant to be public", t)
+    if (lt ~ /service_role/ && (k == "js" || k == "tpl" || lf ~ /(^|\/)(public|static|www|resources\/js|src\/(components|pages|app|views))\//))
+        out("HIGH", f, l, "service_role key used in frontend code: it bypasses every database policy and every visitor can read it", t)
+    if (t ~ /(VITE|NEXT_PUBLIC|REACT_APP|EXPO_PUBLIC|NUXT_PUBLIC|PUBLIC|GATSBY)_[A-Z0-9_]*(SECRET|PRIVATE|SERVICE_ROLE|PASSWORD|PASSWD|ADMIN_KEY)/)
+        out("HIGH", f, l, "secret in a public build variable: VITE_/NEXT_PUBLIC_/REACT_APP_ values are shipped to every browser", t)
+    if (lt ~ /["']?acl["']?[ \t]*[:=][ \t]*["']public-read(-write)?["']|"principal"[ \t]*:[ \t]*"[*]"|"principal"[ \t]*:[ \t]*[{][ \t]*"aws"[ \t]*:[ \t]*"[*]"|blockpublic(acls|policy)[ \t]*[:=][ \t]*false|allusers|allauthenticatedusers/)
+        out("WARN", f, l, "cloud storage or policy opened to the public: confirm nothing private is stored there", t)
+    if (lt ~ /0[.]0[.]0[.]0\/0/ && lt ~ /(22|3306|5432|6379|27017|9200|1433)/)
+        out("HIGH", f, l, "database or SSH port open to the whole internet (0.0.0.0/0)", t)
+}
+
+# LLM features in the application itself (OWASP Top 10 for LLM Applications).
+function llmapp(f, l, t, lt, k, req) {
+    if (lt ~ /completion|choices[[]0[]]|message[.]content|output_text|response[.]text|generated_text|llm|chatgpt|gpt-|ai_?response|model_?output/ &&
+        t ~ /(^|[^a-zA-Z0-9_.>$])eval[ \t]*[(]|exec[ \t]*[(]|new[ \t]+Function[(]|innerHTML|dangerouslySetInnerHTML|v-html|[{]!!|DB::raw|whereRaw|[.]query[(]|cursor[.]execute|shell_exec|system[(]|subprocess|child_process/)
+        out("HIGH", f, l, "AI model output used as code, SQL, shell or raw HTML: treat model output as untrusted input (insecure output handling)", t)
+    if (req && lt ~ /["']?role["']?[ \t]*(=>|:)[ \t]*["']system["']|system_?prompt|systemprompt|system:[ \t]*[`"']/)
+        out("WARN", f, l, "user input placed in a system prompt: users can rewrite the model's instructions (prompt injection)", t)
+    if (t ~ /api[.]openai[.]com|api[.]anthropic[.]com|generativelanguage[.]googleapis[.]com|api[.]groq[.]com|openrouter[.]ai|api[.]mistral[.]ai|api[.]cohere|new[ \t]+(OpenAI|Anthropic|GoogleGenerativeAI|Groq)[(]|OpenAI::|Anthropic::|openai[.]chat|client[.]messages[.]create|chat[.]completions[.]create/)
+        out("INFO", f, l, "data sent to an AI provider: no secrets or personal data without consent; add a timeout, rate limit and spending cap", t)
+}
+
 function configline(f, l, t, lt) {
     if (lt ~ /(^|[^a-z_])(app_)?debug["']?[ \t]*(=|:)[ \t]*["']?(true|1|on)["']?[ \t]*,?[ \t]*$/ && tolower(f) !~ /(example|sample|dist|local|dev|test)/)
         out("WARN", f, l, "debug mode switched on: shows stack traces and settings to visitors", t)
@@ -357,6 +394,9 @@ function leftovers(f, l, t, lt, k, cmt,    ell) {
 
 function code(f, l, t, lt, k, pa, pl,    req, sqlish, rawapi, interp, net) {
     req = hasreq(t)
+    llmapp(f, l, t, lt, k, req)
+    if ((lt ~ /log::|logger[(.]|console[.](log|info|debug)[(]|logging[.]|error_log[(]/) && t ~ /[$]request->all[(][)]|req[.]body[ 	]*[),]|request[.](POST|data|json)[ 	]*[),]/)
+        out("WARN", f, l, "whole request logged: passwords, tokens and personal data end up in the logs", t)
 
     # SQL injection
     sqlish = (lt ~ /select[ \t].*[ \t]from[ \t]|insert[ \t]+into[ \t]|update[ \t]+[^ \t]+[ \t]+set[ \t]|delete[ \t]+from[ \t]|[ \t]where[ \t]+[^ \t]+[ \t]*(=|<|>|like|in[ \t(])|order[ \t]+by[ \t]/)

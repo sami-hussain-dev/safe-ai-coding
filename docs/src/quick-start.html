@@ -11,7 +11,7 @@
 
 <div class="cover">
   <div class="inner">
-    <span class="badge">Free &middot; open source &middot; MIT &middot; version 2.0</span>
+    <span class="badge">Free &middot; open source &middot; MIT &middot; version 2.1</span>
     <h1>safe-ai-coding<br><span>Quick Start Guide</span></h1>
     <p class="sub">Make your AI coding agent safe in two minutes. It asks before anything risky, catches the mistakes AI makes, and reviews every change like a careful teammate.</p>
     <svg class="shield" viewBox="0 0 120 140" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -55,23 +55,25 @@
   <p>Type these two lines inside Claude Code:</p>
 <pre>/plugin marketplace add sami-hussain-dev/safe-ai-coding
 /plugin install safe-ai-coding@safe-ai-coding</pre>
-  <h3>Option 2: one git command</h3>
+  <h3>Option 2: with git (any Claude Code version)</h3>
 <pre><span class="c"># macOS, Linux or Git Bash</span>
-git clone --depth 1 https://github.com/sami-hussain-dev/safe-ai-coding.git ~/.claude/skills/safe-ai-coding
+git clone --depth 1 https://github.com/sami-hussain-dev/safe-ai-coding.git ~/safe-ai-coding
+cp -r ~/safe-ai-coding/skills/safe-ai-coding ~/.claude/skills/
 
 <span class="c"># Windows PowerShell</span>
-git clone --depth 1 https://github.com/sami-hussain-dev/safe-ai-coding.git "$env:USERPROFILE\.claude\skills\safe-ai-coding"</pre>
-  <p>Start a new Claude Code session (or run <code>/reload-plugins</code>). That is all. Pick one option, not both.</p>
+git clone --depth 1 https://github.com/sami-hussain-dev/safe-ai-coding.git "$HOME\safe-ai-coding"
+Copy-Item -Recurse "$HOME\safe-ai-coding\skills\safe-ai-coding" "$HOME\.claude\skills\"</pre>
+  <p>Start a new Claude Code session. That is all. Pick one option, not both. With the git copy, the command is <code>/safe-ai-coding</code> instead of <code>/safe-ai-coding:safe-ai-coding</code>.</p>
   <table>
     <tr><th style="width:18%">To</th><th>Plugin</th><th>Git</th></tr>
-    <tr><td>Update</td><td><code>/plugin</code> &rarr; Marketplaces &rarr; safe-ai-coding &rarr; Update</td><td><code>git -C ~/.claude/skills/safe-ai-coding pull</code></td></tr>
-    <tr><td>Remove</td><td><code>/plugin uninstall safe-ai-coding@safe-ai-coding</code></td><td>Delete the folder</td></tr>
+    <tr><td>Update</td><td><code>/plugin</code> &rarr; Marketplaces &rarr; safe-ai-coding &rarr; Update</td><td><code>git -C ~/safe-ai-coding pull</code>, then the copy command again</td></tr>
+    <tr><td>Remove</td><td><code>/plugin uninstall safe-ai-coding@safe-ai-coding</code></td><td>Delete <code>~/.claude/skills/safe-ai-coding</code></td></tr>
   </table>
 
   <h3>Check it works (optional, 30 seconds)</h3>
   <p>Type this inside Claude Code:</p>
 <pre>/safe-ai-coding:safe-ai-coding self-test
-<span class="c"># Result: 95 passed, 0 failed</span></pre>
+<span class="c"># Result: 115 passed, 0 failed</span></pre>
   <table>
     <tr><th style="width:30%">You need</th><th>Notes</th></tr>
     <tr><td>Claude Code</td><td>Terminal, VS Code, JetBrains or desktop app</td></tr>
@@ -126,7 +128,7 @@ WARN  app/Http/Controllers/OrderController.php:58  Billing::refundAll() not foun
   <h4>Where is the full documentation?</h4>
   <p>The complete guide (English and Roman Urdu) is in the <code>docs/</code> folder of the repository.</p>
   <div class="callout ok"><b>About the author</b><p><strong>Sami Hussain</strong> &middot; <a href="https://x8code.com">x8code.com</a> &middot; <a href="mailto:samihussain9t9@gmail.com">samihussain9t9@gmail.com</a><br>Project home, updates and issues: <a href="https://github.com/sami-hussain-dev/safe-ai-coding">github.com/sami-hussain-dev/safe-ai-coding</a> &middot; MIT License</p></div>
-  <p class="endnote">safe-ai-coding 2.0 &middot; Sources: Veracode GenAI Code Security Report (30 Jul 2025); Spracklen et al., USENIX Security 2025, arxiv.org/abs/2406.10279; OWASP LLM01:2025 Prompt Injection. The skill reduces risk; it does not prove code is safe.</p>
+  <p class="endnote">safe-ai-coding 2.1 &middot; Sources: Veracode GenAI Code Security Report (30 Jul 2025); Spracklen et al., USENIX Security 2025, arxiv.org/abs/2406.10279; OWASP LLM01:2025 Prompt Injection. The skill reduces risk; it does not prove code is safe.</p>
 </section>
 
 </main>

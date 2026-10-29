@@ -9,7 +9,7 @@
 
 <div class="cover">
   <div class="inner">
-    <span class="badge">Claude Code skill &middot; version 2.0</span>
+    <span class="badge">Claude Code skill &middot; version 2.1</span>
     <h1>safe-ai-coding<br><span>Mukammal Guide</span></h1>
     <p class="sub">AI se code likhwane ke liye hifazati usool: code likhte waqt, code ke baad, aur har khatarnak kaam se pehle.</p>
     <svg class="shield" viewBox="0 0 120 140" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -185,17 +185,19 @@
     <li><b>Tareeqa 1: Claude Code plugin (behtareen)</b>Claude Code ke andar yeh do lines likhein:
 <pre>/plugin marketplace add sami-hussain-dev/safe-ai-coding
 /plugin install safe-ai-coding@safe-ai-coding</pre></li>
-    <li><b>Tareeqa 2: ek git command</b>Terminal mein:
+    <li><b>Tareeqa 2: git se (har Claude Code version par)</b>Terminal mein:
 <pre><span class="c"># macOS, Linux or Git Bash</span>
-git clone --depth 1 https://github.com/sami-hussain-dev/safe-ai-coding.git ~/.claude/skills/safe-ai-coding
+git clone --depth 1 https://github.com/sami-hussain-dev/safe-ai-coding.git ~/safe-ai-coding
+cp -r ~/safe-ai-coding/skills/safe-ai-coding ~/.claude/skills/
 
 <span class="c"># Windows PowerShell</span>
-git clone --depth 1 https://github.com/sami-hussain-dev/safe-ai-coding.git "$env:USERPROFILE\.claude\skills\safe-ai-coding"</pre>
+git clone --depth 1 https://github.com/sami-hussain-dev/safe-ai-coding.git "$HOME\safe-ai-coding"
+Copy-Item -Recurse "$HOME\safe-ai-coding\skills\safe-ai-coding" "$HOME\.claude\skills\"</pre>
       Dono mein se ek hi tareeqa chunein.</li>
     <li><b>Naya session shuru karein</b>Claude Code dobara kholein ya <code>/reload-plugins</code> likhein. Skill khud load hoti hai; seedha chalane ke liye <code>/safe-ai-coding:safe-ai-coding</code>.</li>
-    <li><b>Tasdeeq karein</b>Claude Code mein <code>/safe-ai-coding:safe-ai-coding self-test</code> likhein (95 cases pass hone chahiye). Git wale tareeqe mein files ki tasdeeq:
-<pre>bash ~/.claude/skills/safe-ai-coding/skills/safe-ai-coding/scripts/checksums.sh</pre></li>
-    <li><b>Update aur hatana</b>Plugin: <code>/plugin</code> &rarr; Marketplaces &rarr; safe-ai-coding &rarr; Update; hatane ke liye <code>/plugin uninstall safe-ai-coding@safe-ai-coding</code>. Git: <code>git -C ~/.claude/skills/safe-ai-coding pull</code>; hatane ke liye folder delete karein.</li>
+    <li><b>Tasdeeq karein</b>Claude Code mein <code>/safe-ai-coding:safe-ai-coding self-test</code> likhein (115 cases pass hone chahiye). Git wale tareeqe mein files ki tasdeeq:
+<pre>bash ~/.claude/skills/safe-ai-coding/scripts/checksums.sh</pre></li>
+    <li><b>Update aur hatana</b>Plugin: <code>/plugin</code> &rarr; Marketplaces &rarr; safe-ai-coding &rarr; Update; hatane ke liye <code>/plugin uninstall safe-ai-coding@safe-ai-coding</code>. Git: <code>git -C ~/safe-ai-coding pull</code>, phir copy wali command dobara; hatane ke liye <code>~/.claude/skills/safe-ai-coding</code> delete karein. Git wale tareeqe mein command <code>/safe-ai-coding</code> hai.</li>
   </ol>
   <div class="callout warn"><b>Skill ke folder ko code samjhein</b><p>Is mein woh hidayat hain jin par agent amal karega. Isay sirf bharose wali jagah se install karein, doosre code ki tarah review mein rakhein, aur jab bhi koi nayi copy bheje to <code>checksums.sh</code> dobara chalayein.</p></div>
 </section>
@@ -440,12 +442,12 @@ CHANGE:WARN ^database/migrations/   .   schema changed but claude_docs/db.md was
   <h2 class="chapter"><span class="num">13</span>Dono taraf se test</h2>
   <p class="lead">Skill ko AI ki taraf se test kiya gaya: kya woh AI ki ghaltiyan aur hamlawaron ki koshishein pakadti hai? Aur insaan ki taraf se bhi: kya sahi code par khamosh rehti hai, aur kya istemal mein aasaan hai?</p>
     <div class="grid3">
-    <div class="tile teal"><span class="big">95 / 95</span><span class="what">self-test cases pass: 59 AI view, 17 human view, 13 safety, 6 report</span></div>
+    <div class="tile teal"><span class="big">115 / 115</span><span class="what">self-test cases pass: 68 AI view, 21 human view, 20 safety, 6 report</span></div>
     <div class="tile"><span class="big">40</span><span class="what">ek production Laravel codebase ke asal, insaanon ke likhe commits ghalat alarms ke liye scan kiye gaye</span></div>
     <div class="tile red"><span class="big">0</span><span class="what">attack repos ki malicious git config, hooks ya symlinks se chalne wali commands</span></div>
   </div>
   <h3>AI view: kya ghalti pakadti hai?</h3>
-  <p>59 cases hain, har ek AI ki aam ghalti ya hamla. Har ek ka sahi darje ke saath pakda jana zaroori hai:</p>
+  <p>68 cases hain, har ek AI ki aam ghalti ya hamla. Har ek ka sahi darje ke saath pakda jana zaroori hai:</p>
   <ul>
     <li>SQL, command aur path injection, SSRF, eval</li>
     <li>keys, private keys aur <code>.env</code> files</li>
@@ -458,9 +460,9 @@ CHANGE:WARN ^database/migrations/   .   schema changed but claude_docs/db.md was
     <li>har qisam ke project rules</li>
     <li>paanch gharhe hue symbols (class, method, view, route, import)</li>
   </ul>
-  <p>Saare 59 pakde gaye.</p>
+  <p>Saare 68 pakde gaye.</p>
   <h3>Human view: kya sahi code par khamosh rehti hai?</h3>
-  <p>Sahi, rozmarra code ke 17 cases par koi HIGH ya WARN nahi aana chahiye:</p>
+  <p>Sahi, rozmarra code ke 21 cases par koi HIGH ya WARN nahi aana chahiye:</p>
   <ul>
     <li>bound queries, aur <code>password</code> naam ke validation rules</li>
     <li>"Loading..." aur doston jaisa UI text, <code>placeholder</code> attributes</li>
@@ -468,7 +470,7 @@ CHANGE:WARN ^database/migrations/   .   schema changed but claude_docs/db.md was
     <li>abstract methods, rollback wali transactions</li>
     <li>asli classes, views aur routes</li>
   </ul>
-  <p>Saare 17 khamosh rahe. Asal codebase par:</p>
+  <p>Saare 21 khamosh rahe. Asal codebase par:</p>
   <table>
     <tr><th style="width:34%">Test</th><th>Nateeja</th></tr>
     <tr><td>40 asal commits, pattern scan</td><td>Ghalat alarm ki teen wajahein mili aur theek ki gayin:
@@ -524,7 +526,7 @@ CHANGE:WARN ^database/migrations/   .   schema changed but claude_docs/db.md was
   <h2 class="chapter"><span class="num">15</span>Masail ka hal aur aam sawal</h2>
   <table>
     <tr><th style="width:38%">Sawal</th><th>Jawab</th></tr>
-    <tr><td>Skill load nahi hui</td><td><code>/plugin</code> mein Installed tab dekhein, ya git wale tareeqe mein check karein ke <code>~/.claude/skills/safe-ai-coding/.claude-plugin/plugin.json</code> maujood ho. Phir <code>/reload-plugins</code> likhein. Dono tareeqe ek saath install na karein.</td></tr>
+    <tr><td>Skill load nahi hui</td><td><code>/plugin</code> mein Installed tab dekhein, ya git wale tareeqe mein check karein ke <code>~/.claude/skills/safe-ai-coding/SKILL.md</code> maujood ho (sirf skill ka folder, poori repo nahi). Phir naya session shuru karein. Dono tareeqe ek saath install na karein.</td></tr>
     <tr><td><code>diff-check</code> keh raha hai "filter drivers"</td><td>Aap ki <code>.git/config</code> filter programs define karti hai, maslan repo-level Git LFS. Use parhein, aur bharosa ho to <code>--trust-git-config</code> ke saath dobara chalayein.</td></tr>
     <tr><td>Route ya view ghayab bataya, lekin woh package ka hai</td><td>Package ke routes aur views <code>routes/</code> aur <code>resources/views/</code> se bahar hote hain. Tasdeeq kar ke aage badhein, ya us run ke liye <code>--no-symbols</code> use karein.</td></tr>
     <tr><td>Bohat zyada findings</td><td>Pehle HIGH theek karein. Sab dekhne ke liye <code>--all</code>, aur project rules ya conventions daalein taake agla agent woh pattern na dohraye.</td></tr>
@@ -564,7 +566,7 @@ CHANGE:WARN ^database/migrations/   .   schema changed but claude_docs/db.md was
   <p class="small">Tamam sources 29 October 2026 ko khol kar check kiye gaye.</p>
 
   <div class="callout ok"><b>Banane wale</b><p><strong>Sami Hussain</strong> &middot; <a href="https://x8code.com">x8code.com</a> &middot; <a href="mailto:samihussain9t9@gmail.com">samihussain9t9@gmail.com</a><br>Project home: <a href="https://github.com/sami-hussain-dev/safe-ai-coding">github.com/sami-hussain-dev/safe-ai-coding</a> &middot; MIT License</p></div>
-  <p class="endnote">safe-ai-coding 2.0 &middot; Ye guide batati hai ke skill kya karti hai. Ye khatra kam karti hai, code ke mehfooz hone ka saboot nahi deti. Har tabdeeli ko ab bhi insaan review karta hai.</p>
+  <p class="endnote">safe-ai-coding 2.1 &middot; Ye guide batati hai ke skill kya karti hai. Ye khatra kam karti hai, code ke mehfooz hone ka saboot nahi deti. Har tabdeeli ko ab bhi insaan review karta hai.</p>
 </section>
 
 </main>

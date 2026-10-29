@@ -9,7 +9,7 @@
 
 <div class="cover">
   <div class="inner">
-    <span class="badge">Claude Code skill &middot; version 2.0</span>
+    <span class="badge">Claude Code skill &middot; version 2.1</span>
     <h1>safe-ai-coding<br><span>Complete Guide</span></h1>
     <p class="sub">Guardrails for AI-assisted coding: while the code is written, after it is written, and before anything risky happens.</p>
     <svg class="shield" viewBox="0 0 120 140" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -169,17 +169,19 @@
     <li><b>Option 1: Claude Code plugin (recommended)</b>Type these two lines inside Claude Code:
 <pre>/plugin marketplace add sami-hussain-dev/safe-ai-coding
 /plugin install safe-ai-coding@safe-ai-coding</pre></li>
-    <li><b>Option 2: one git command</b>In a terminal:
+    <li><b>Option 2: with git (any Claude Code version)</b>In a terminal:
 <pre><span class="c"># macOS, Linux or Git Bash</span>
-git clone --depth 1 https://github.com/sami-hussain-dev/safe-ai-coding.git ~/.claude/skills/safe-ai-coding
+git clone --depth 1 https://github.com/sami-hussain-dev/safe-ai-coding.git ~/safe-ai-coding
+cp -r ~/safe-ai-coding/skills/safe-ai-coding ~/.claude/skills/
 
 <span class="c"># Windows PowerShell</span>
-git clone --depth 1 https://github.com/sami-hussain-dev/safe-ai-coding.git "$env:USERPROFILE\.claude\skills\safe-ai-coding"</pre>
+git clone --depth 1 https://github.com/sami-hussain-dev/safe-ai-coding.git "$HOME\safe-ai-coding"
+Copy-Item -Recurse "$HOME\safe-ai-coding\skills\safe-ai-coding" "$HOME\.claude\skills\"</pre>
       Pick one option, not both.</li>
     <li><b>Start a new session</b>Restart Claude Code or type <code>/reload-plugins</code>. The skill loads by itself; to call it directly, type <code>/safe-ai-coding:safe-ai-coding</code>.</li>
-    <li><b>Verify</b>Type <code>/safe-ai-coding:safe-ai-coding self-test</code> in Claude Code (95 cases should pass). With the git option you can also check the files:
-<pre>bash ~/.claude/skills/safe-ai-coding/skills/safe-ai-coding/scripts/checksums.sh</pre></li>
-    <li><b>Update and remove</b>Plugin: <code>/plugin</code> &rarr; Marketplaces &rarr; safe-ai-coding &rarr; Update; remove with <code>/plugin uninstall safe-ai-coding@safe-ai-coding</code>. Git: <code>git -C ~/.claude/skills/safe-ai-coding pull</code>; remove by deleting the folder.</li>
+    <li><b>Verify</b>Type <code>/safe-ai-coding:safe-ai-coding self-test</code> in Claude Code (115 cases should pass). With the git option you can also check the files:
+<pre>bash ~/.claude/skills/safe-ai-coding/scripts/checksums.sh</pre></li>
+    <li><b>Update and remove</b>Plugin: <code>/plugin</code> &rarr; Marketplaces &rarr; safe-ai-coding &rarr; Update; remove with <code>/plugin uninstall safe-ai-coding@safe-ai-coding</code>. Git: <code>git -C ~/safe-ai-coding pull</code>, then the copy command again; remove by deleting <code>~/.claude/skills/safe-ai-coding</code>. With the git copy the command is <code>/safe-ai-coding</code>.</li>
   </ol>
   <div class="callout warn"><b>Treat the skill folder like code</b><p>It contains instructions an agent will follow. Install it only from a source you trust, keep it under review like any other code, and re-run <code>checksums.sh</code> whenever someone sends you a new copy.</p></div>
 </section>
@@ -424,12 +426,12 @@ CHANGE:WARN ^database/migrations/   .   schema changed but claude_docs/db.md was
   <h2 class="chapter"><span class="num">13</span>Tested from both sides</h2>
   <p class="lead">The skill was tested from the AI's side (does it catch what AI gets wrong and what attackers try?) and the human side (does it stay quiet on good code, and is it usable?).</p>
     <div class="grid3">
-    <div class="tile teal"><span class="big">95 / 95</span><span class="what">self-test cases pass: 59 AI view, 17 human view, 13 safety, 6 report</span></div>
+    <div class="tile teal"><span class="big">115 / 115</span><span class="what">self-test cases pass: 68 AI view, 21 human view, 20 safety, 6 report</span></div>
     <div class="tile"><span class="big">40</span><span class="what">real, human-written commits of a production Laravel codebase scanned for false alarms</span></div>
     <div class="tile red"><span class="big">0</span><span class="what">commands executed from malicious git config, hooks or symlinks in the attack repositories</span></div>
   </div>
   <h3>AI view: does it catch what goes wrong?</h3>
-  <p>59 cases, each a typical AI mistake or attack, must be caught with the right severity:</p>
+  <p>68 cases, each a typical AI mistake or attack, must be caught with the right severity:</p>
   <ul>
     <li>SQL, command and path injection, SSRF, eval</li>
     <li>keys, private keys and <code>.env</code> files</li>
@@ -442,9 +444,9 @@ CHANGE:WARN ^database/migrations/   .   schema changed but claude_docs/db.md was
     <li>project rules of every kind</li>
     <li>five invented symbols (class, method, view, route, import)</li>
   </ul>
-  <p>All 59 are caught.</p>
+  <p>All 68 are caught.</p>
   <h3>Human view: does it stay quiet on good code?</h3>
-  <p>17 cases of correct, everyday code must raise no HIGH or WARN:</p>
+  <p>21 cases of correct, everyday code must raise no HIGH or WARN:</p>
   <ul>
     <li>bound queries and validation rules named <code>password</code></li>
     <li>"Loading..." and friendly UI text, <code>placeholder</code> attributes</li>
@@ -452,7 +454,7 @@ CHANGE:WARN ^database/migrations/   .   schema changed but claude_docs/db.md was
     <li>abstract methods, transactions with rollback</li>
     <li>real classes, views and routes</li>
   </ul>
-  <p>All 17 stay quiet. On the real codebase:</p>
+  <p>All 21 stay quiet. On the real codebase:</p>
   <table>
     <tr><th style="width:34%">Test</th><th>Result</th></tr>
     <tr><td>40 real commits, pattern scan</td><td>Three sources of false alarms were found and fixed:
@@ -508,7 +510,7 @@ CHANGE:WARN ^database/migrations/   .   schema changed but claude_docs/db.md was
   <h2 class="chapter"><span class="num">15</span>Troubleshooting and FAQ</h2>
   <table>
     <tr><th style="width:38%">Question</th><th>Answer</th></tr>
-    <tr><td>The skill did not load</td><td>Check the Installed tab in <code>/plugin</code>, or, with the git option, that <code>~/.claude/skills/safe-ai-coding/.claude-plugin/plugin.json</code> exists. Then type <code>/reload-plugins</code>. Do not install both ways at once.</td></tr>
+    <tr><td>The skill did not load</td><td>Check the Installed tab in <code>/plugin</code>, or, with the git option, that <code>~/.claude/skills/safe-ai-coding/SKILL.md</code> exists (the skill folder itself, not the whole repository). Then start a new session. Do not install both ways at once.</td></tr>
     <tr><td><code>diff-check</code> refuses: "filter drivers"</td><td>Your <code>.git/config</code> defines filter programs (for example Git LFS installed per repository). Read it. If you trust it, rerun with <code>--trust-git-config</code>.</td></tr>
     <tr><td>A route or view is reported missing, but it comes from a package</td><td>Package routes and views are outside <code>routes/</code> and <code>resources/views/</code>. Confirm it and move on, or use <code>--no-symbols</code> for that run.</td></tr>
     <tr><td>Too many findings</td><td>Fix the HIGH ones first. Use <code>--all</code> to see everything, and add project rules or conventions so the agent avoids the pattern next time.</td></tr>
@@ -548,7 +550,7 @@ CHANGE:WARN ^database/migrations/   .   schema changed but claude_docs/db.md was
   <p class="small">All sources were opened and checked on 29 October 2026.</p>
 
   <div class="callout ok"><b>About the author</b><p><strong>Sami Hussain</strong> &middot; <a href="https://x8code.com">x8code.com</a> &middot; <a href="mailto:samihussain9t9@gmail.com">samihussain9t9@gmail.com</a><br>Project home: <a href="https://github.com/sami-hussain-dev/safe-ai-coding">github.com/sami-hussain-dev/safe-ai-coding</a> &middot; MIT License</p></div>
-  <p class="endnote">safe-ai-coding 2.0 &middot; This guide describes what the skill does; it reduces risk and does not prove that code is safe. People still review every change.</p>
+  <p class="endnote">safe-ai-coding 2.1 &middot; This guide describes what the skill does; it reduces risk and does not prove that code is safe. People still review every change.</p>
 </section>
 
 </main>

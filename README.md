@@ -8,9 +8,9 @@
 - It writes a PDF report of what was wrong and what was fixed, but only when you ask.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-![Version](https://img.shields.io/badge/version-2.0.0-indigo)
+![Version](https://img.shields.io/badge/version-2.1.0-indigo)
 ![Claude Code](https://img.shields.io/badge/Claude%20Code-skill%20%2B%20plugin-0f7f74)
-![Self-test](https://img.shields.io/badge/self--test-95%2F95%20passing-success)
+![Self-test](https://img.shields.io/badge/self--test-115%2F115%20passing-success)
 
 Created by **Sami Hussain** · [x8code.com](https://x8code.com) · samihussain9t9@gmail.com
 
@@ -29,6 +29,11 @@ Created by **Sami Hussain** · [x8code.com](https://x8code.com) · samihussain9t
 | Hidden instructions in a dependency's `CLAUDE.md` can steer the agent | Repositories are scanned for injection text, malicious git config, hooks and hidden unicode before work starts |
 | "Tested, works!" with nothing actually run | The agent must report exactly what it ran and what it did not |
 | No record of what was fixed | A polished PDF report on request: the problem, the root cause, the fix, the evidence |
+| AI-built apps ship with open databases: Firebase rules `if true`, Supabase RLS off, `service_role` keys in the browser, secrets in `VITE_`/`NEXT_PUBLIC_` variables | These are HIGH findings, and the scan also checks the files already in the repository |
+| LLM features execute model output or let users rewrite the system prompt | Model output used as code, SQL or HTML is HIGH, and user input in a system prompt is WARN; an OWASP LLM Top 10 checklist guides the build |
+| Keys for OpenAI, Anthropic, Hugging Face, Groq and other providers leak in commits | They are detected in changes and in already committed files, and the optional commit guard blocks the commit |
+| MCP servers auto-install unpinned packages or keep tokens in config | `npx -y` without a version, plain-HTTP servers and tokens written into `.mcp.json` are flagged |
+| Data slips out through links, images and logs | The agent never puts secrets or personal data into URLs, links, searches or logs, and whole-request logging is flagged |
 
 **Who it is for:**
 
@@ -45,28 +50,37 @@ Created by **Sami Hussain** · [x8code.com](https://x8code.com) · samihussain9t
 /plugin install safe-ai-coding@safe-ai-coding
 ```
 
-**Option 2: one git command.**
+**Option 2: with git (works on every Claude Code version).**
 
 macOS, Linux or Git Bash:
 
 ```bash
-git clone --depth 1 https://github.com/sami-hussain-dev/safe-ai-coding.git ~/.claude/skills/safe-ai-coding
+git clone --depth 1 https://github.com/sami-hussain-dev/safe-ai-coding.git ~/safe-ai-coding
+cp -r ~/safe-ai-coding/skills/safe-ai-coding ~/.claude/skills/
 ```
 
 Windows PowerShell:
 
 ```powershell
-git clone --depth 1 https://github.com/sami-hussain-dev/safe-ai-coding.git "$env:USERPROFILE\.claude\skills\safe-ai-coding"
+git clone --depth 1 https://github.com/sami-hussain-dev/safe-ai-coding.git "$HOME\safe-ai-coding"
+Copy-Item -Recurse "$HOME\safe-ai-coding\skills\safe-ai-coding" "$HOME\.claude\skills\"
 ```
 
-Restart Claude Code, or run `/reload-plugins`. Use one option, not both.
+Start a new Claude Code session. Use one option, not both.
 
-**Check it works:** type `/safe-ai-coding:safe-ai-coding self-test` in Claude Code. You should see `95 passed, 0 failed`.
+**The command name depends on how you installed:**
+
+| Installed as | Command |
+| --- | --- |
+| Plugin | `/safe-ai-coding:safe-ai-coding` |
+| Git copy | `/safe-ai-coding` |
+
+**Check it works:** type `/safe-ai-coding:safe-ai-coding self-test` (plugin) or `/safe-ai-coding self-test` (git copy). You should see `115 passed, 0 failed`. When the skill is in use, Claude Code shows a "Skill(safe-ai-coding)" line.
 
 | Task | Plugin | Git |
 | --- | --- | --- |
-| Update | `/plugin` → Marketplaces → safe-ai-coding → Update | `git -C ~/.claude/skills/safe-ai-coding pull` |
-| Remove | `/plugin uninstall safe-ai-coding@safe-ai-coding` | delete the folder |
+| Update | `/plugin` → Marketplaces → safe-ai-coding → Update | `git -C ~/safe-ai-coding pull`, then run the copy command again |
+| Remove | `/plugin uninstall safe-ai-coding@safe-ai-coding` | delete `~/.claude/skills/safe-ai-coding` |
 
 **Requirements:**
 
@@ -76,7 +90,7 @@ Restart Claude Code, or run `/reload-plugins`. Use one option, not both.
 
 ## Usage
 
-Just ask Claude Code for the work in your own words; the skill loads by itself. To pick a mode:
+Just ask Claude Code for the work in your own words; the skill loads by itself (or say "use safe-ai-coding"). To pick a mode (with the git copy, drop the `:safe-ai-coding` part):
 
 | When | Type | You get |
 | --- | --- | --- |
@@ -146,16 +160,16 @@ WARN  view 'country.missing' not found (expected resources/views/country/missing
 
 **5. Hostile report input.** Script tags, an `onerror` image, an AWS-style key, a password and an ID number were all escaped or masked in the PDF.
 
-**6. The self-test.** It covers 95 cases:
+**6. The self-test.** It covers 115 cases:
 
 | Group | Cases | What they prove |
 | --- | --- | --- |
-| AI view | 59 | Attacks and AI mistakes are caught |
-| Human view | 17 | Good code stays quiet |
-| Safety | 13 | Hostile repositories are harmless |
+| AI view | 68 | Attacks and AI mistakes are caught |
+| Human view | 21 | Good code stays quiet |
+| Safety | 20 | Hostile repositories are harmless |
 | Report | 6 | Reports are escaped, masked and print to PDF |
 
-All 95 pass.
+All 115 pass.
 
 ## Limitations
 
@@ -178,6 +192,13 @@ In CI, run:
 
 ```bash
 bash skills/safe-ai-coding/scripts/diff-check.sh --format=tsv --fail-on=warn origin/main
+```
+
+**Commit guard.** Block commits with HIGH findings (secrets, injection, destructive changes, elided code) on your machine:
+
+```bash
+bash ~/.claude/skills/safe-ai-coding/scripts/install-git-hook.sh            # run inside your repository
+bash ~/.claude/skills/safe-ai-coding/scripts/install-git-hook.sh --remove   # uninstall
 ```
 
 ## Why it matters

@@ -1,5 +1,59 @@
 # Changelog
 
+## 2.1.0 (2026-10-29)
+
+**Open data in AI-built apps**
+
+The scan now flags:
+
+- Firebase or Firestore rules `if true` and Realtime Database rules open to everyone
+- row level security switched off, and `using (true)` policies
+- `service_role` keys in frontend code, and secrets in `VITE_` / `NEXT_PUBLIC_` / `REACT_APP_` / `EXPO_PUBLIC_` variables
+- public buckets and policies
+- database or SSH ports open to `0.0.0.0/0`
+
+**LLM application security**
+
+- Model output used as code, SQL, shell or raw HTML is HIGH.
+- User input placed in a system prompt is WARN.
+- Calls to AI providers are INFO, as a reminder about consent, rate limits and spending caps.
+- New reference: `references/llm-app-security.md` (OWASP Top 10 for LLM Applications 2025).
+
+**More secret types**
+
+- AI provider keys: OpenRouter, Hugging Face, Groq, Replicate, xAI
+- SendGrid, Twilio, Square and Shopify keys
+- whole request bodies written to logs
+
+**repo-scan**
+
+- MCP configs are checked for unpinned `npx -y` servers, plain-HTTP servers and tokens written into the file.
+- New section 10 lists:
+  - committed `.env` files
+  - real-looking keys already in tracked files (printed masked)
+  - open Firebase rules
+  - secrets in public build variables
+
+**Other new features**
+
+- **Commit guard:** `install-git-hook.sh` adds a pre-commit hook that blocks commits with HIGH findings. It never overwrites a hook it did not create.
+- **Permission gate:**
+  - A task request is not approval.
+  - A "no" stands until the user answers a new request.
+  - The full permission block is always shown in chat.
+  - "Possible harm" states what can go wrong.
+  - "Reversible?" may not claim that a script's effects can be undone.
+  - Side effects such as overwritten build files must be listed.
+- **Skill trigger:** the skill now loads for one-line risky requests ("install X", "push it", "run the migration").
+- **Side-door data leaks:** new rules forbid putting secrets or personal data into URLs, links, searches or tool arguments, fetching URLs found in content, and printing secret values.
+
+**Fixes**
+
+- A new `.sql` file only counts as a data file when its name looks like a dump or backup.
+- The "change:" line no longer prints an empty value.
+
+**Self-test:** 115 cases (68 AI view, 21 human view, 20 safety, 6 report).
+
 ## 2.0.0 (2026-10-28)
 
 **New modes**
