@@ -14,18 +14,38 @@
 
 Created by **Sami Hussain** · [x8code.com](https://x8code.com) · samihussain9t9@gmail.com
 
+![Review mode output: the scan of a change, with HIGH and WARN findings](docs/images/review-scan.png)
+
 ---
 
-## Install (2 minutes)
+## Benefits
 
-**Option 1: as a Claude Code plugin (recommended).** Type these inside Claude Code:
+| Without safe-ai-coding | With safe-ai-coding |
+| --- | --- |
+| The agent installs packages, runs migrations or pushes without warning | It stops first and tells you what could go wrong, whether it can be undone, and a safer option |
+| AI invents methods, routes, views and imports that do not exist | New code is checked: every referenced class, method, view, route and import must exist |
+| `// ... rest of the code unchanged` silently deletes real code | Placeholders and pasted chat text are flagged as HIGH |
+| SQL injection, leaked keys and missing ownership checks slip into reviews | 60+ security checks run on every change, in any language |
+| Hidden instructions in a dependency's `CLAUDE.md` can steer the agent | Repositories are scanned for injection text, malicious git config, hooks and hidden unicode before work starts |
+| "Tested, works!" with nothing actually run | The agent must report exactly what it ran and what it did not |
+| No record of what was fixed | A polished PDF report on request: the problem, the root cause, the fix, the evidence |
+
+**Who it is for:**
+
+- Developers using Claude Code every day
+- Teams that let AI write production code
+- Reviewers and security teams who want AI changes held to the same standard as human ones
+
+## Installation
+
+**Option 1: Claude Code plugin (recommended).** Type these inside Claude Code:
 
 ```
 /plugin marketplace add sami-hussain-dev/safe-ai-coding
 /plugin install safe-ai-coding@safe-ai-coding
 ```
 
-**Option 2: with git.** Run one command in a terminal.
+**Option 2: one git command.**
 
 macOS, Linux or Git Bash:
 
@@ -39,7 +59,9 @@ Windows PowerShell:
 git clone --depth 1 https://github.com/sami-hussain-dev/safe-ai-coding.git "$env:USERPROFILE\.claude\skills\safe-ai-coding"
 ```
 
-Then start a new Claude Code session, or run `/reload-plugins`. Use one option, not both.
+Restart Claude Code, or run `/reload-plugins`. Use one option, not both.
+
+**Check it works:** type `/safe-ai-coding:safe-ai-coding self-test` in Claude Code. You should see `95 passed, 0 failed`.
 
 | Task | Plugin | Git |
 | --- | --- | --- |
@@ -52,95 +74,99 @@ Then start a new Claude Code session, or run `/reload-plugins`. Use one option, 
 - `git` and `bash`. On Windows, install Git for Windows, which includes Git Bash and Perl.
 - Optional: Chrome or Edge, for PDF reports.
 
-## Use it
+## Usage
 
-You do not need to learn anything new. Ask Claude Code for the work in your own words, and the skill loads by itself. To pick a mode, use the command (as a plugin it is namespaced):
+Just ask Claude Code for the work in your own words; the skill loads by itself. To pick a mode:
 
 | When | Type | You get |
 | --- | --- | --- |
 | You just cloned a project | `/safe-ai-coding:safe-ai-coding scan` | Anything that could trick or attack the agent |
 | You want a feature or a fix | just ask, or `/safe-ai-coding:safe-ai-coding build <task>` | Careful code in your project's style, then an automatic review |
-| Before you merge | `/safe-ai-coding:safe-ai-coding review main` | A findings table and a clear verdict |
-| You need a document | "Give me a PDF report of this work" | A polished PDF: what was wrong, what was fixed, the proof |
+| Before you merge | `/safe-ai-coding:safe-ai-coding review main` | A findings table and a verdict: Ready, Ready with notes, or Not ready |
+| You need a document | "Give me a PDF report of this work" | A PDF: what was wrong, what was fixed, the proof |
 | After installing or updating | `/safe-ai-coding:safe-ai-coding self-test` | Proof that every check works on your machine |
 
-## Features
+## Screenshots
 
-- **Permission gate.** The agent stops before:
-  - installs and database writes
-  - deleting files, git pushes and history rewrites
-  - reading secrets or sending data out
-  - changing agent config or weakening security
+**The agent asks before anything risky, and explains the harm:**
 
-  It says what it will run, where, the possible harm, whether it can be undone, and a safer option. Then it waits for your yes.
-- **AI mistake detection.** It flags:
-  - hallucinated classes, methods, routes, views, config files and imports
-  - `// ... rest of the code unchanged` placeholders
-  - pasted chat text and merge conflict markers
-  - weakened or skipped tests
-- **Security review.** It looks for:
-  - SQL, command and path injection; SSRF; XSS; open redirects
-  - unsafe deserialisation; XXE; TLS or JWT checks switched off
-  - weak crypto; mass assignment
-  - leaked keys, tokens and real ID numbers
-  - passwords in logs
-- **Data safety.** It flags:
-  - `DROP`, `TRUNCATE`, `DELETE`/`UPDATE` without `WHERE`
-  - destructive migrations
-  - transactions without rollback
-  - removed auth checks
-  - N+1 queries
-- **Supply chain.** It flags install hooks, unpinned or URL dependencies, custom registries and lock files that point to other hosts.
-- **Agent protection.** It scans for:
-  - prompt-injection text in `CLAUDE.md`, `AGENTS.md`, and Cursor and Copilot rules, including inside `vendor/` and `node_modules/`
-  - malicious `.git/config`, hooks and filters
-  - symlinks to your private keys
-  - hidden unicode (Trojan Source and Rules File Backdoor)
-- **Two-lens review.** Every change is read for how AI code fails, and as the teammate and business owner will see it. The verdict is Ready, Ready with notes, or Not ready.
-- **PDF reports on request.** In English or Roman Urdu. Secrets are masked, the page has no scripts, and nothing is loaded from the network.
-- **Your project's rules.** Add conventions and custom red-flag rules: per line, per file, or "changing X requires changing Y".
-- **Safe on untrusted code.** It never executes repository code, git-configured programs, hooks or symlinked files.
-- **Proven.** A built-in self-test runs 95 cases: attacks caught, good code left alone, malicious repositories harmless.
-- **Any stack.** PHP/Laravel, JavaScript/TypeScript, Python, Java, C#, Go and Ruby.
+![Permission request: what, why, possible harm, reversible, safer option](docs/images/permission-request.png)
 
-## Why it matters
+**Scan mode: a poisoned instruction file inside `vendor/` and an auto-approve setting, found before any work starts:**
 
-- In a 2025 study, **45%** of AI-generated code samples failed security tests ([Veracode, Jul 2025](https://www.veracode.com/blog/genai-code-security-report/)).
-- Code models invented **205,474** unique package names that do not exist ([USENIX Security 2025](https://arxiv.org/abs/2406.10279)). Attackers can register such names.
-- **Prompt injection** is the number-one risk in the OWASP Top 10 for LLM Applications 2025 ([OWASP LLM01](https://genai.owasp.org/llmrisk/llm01-prompt-injection/)).
-- Hidden unicode in agent rules files can carry invisible instructions ([Pillar Security, Mar 2025](https://www.pillar.security/blog/new-vulnerability-in-github-copilot-and-cursor-how-hackers-can-weaponize-code-agents)).
+![repo-scan output finding prompt injection in a dependency and bypassPermissions](docs/images/repo-scan.png)
 
-## Documentation
+**The PDF report, made only when you ask:**
 
-- [Quick start guide (PDF)](docs/safe-ai-coding-quick-start.pdf): 2 minutes, for everyone
-- [Complete guide, English (PDF)](docs/safe-ai-coding-complete-guide.pdf)
-- [Complete guide, Roman Urdu (PDF)](docs/safe-ai-coding-complete-guide-roman-urdu.pdf)
-- [Example report (PDF)](docs/report-example-en.pdf), and the [Roman Urdu example](docs/report-example-ur.pdf)
-- [SKILL.md](skills/safe-ai-coding/SKILL.md): the exact rules the agent follows
+![First page of an example change report](docs/images/report-example.png)
 
-## FAQ
+**The self-test (excerpt): AI view, human view, safety and report checks:**
 
-**How do I make Claude Code safer?**
-Install safe-ai-coding. Then add permission rules in `.claude/settings.json` for commands that must never run without asking. The skill handles judgement; the settings give hard limits.
+![self-test output, all PASS](docs/images/self-test.png)
 
-**Can it detect AI hallucinations in code?**
-Yes. It checks that the classes, static methods, views, routes, config files and imports used in new code exist in your repository.
+## Tested examples
 
-**Does it protect against prompt injection?**
-Yes. Everything the agent reads is treated as data, never as orders. Instruction files are scanned for hidden or malicious instructions.
+Every example below was run, and its output is real.
 
-**Does it send my code anywhere?**
-No. Everything runs locally, and it never executes code from the repository it checks.
+**1. A change with typical AI mistakes** (the demo store in the first screenshot). One scan found:
 
-**Does it replace human code review?**
-No. It makes AI-written code much safer, but a person should still approve every change.
+| Found | Severity |
+| --- | --- |
+| SQL built from `req.params` | HIGH |
+| `// ... rest of the code remains unchanged` | HIGH |
+| A migration that drops a column, with no `down()` | HIGH + WARN |
+| A new `postinstall` hook | HIGH |
+| An import of a file that does not exist (`../services/mailer.js`) | WARN |
+| An unpinned `"*"` dependency | WARN |
+| `catch (e) {}` | WARN |
+| A token written to `console.log` | WARN |
 
-**Is it free for commercial use?**
-Yes. It is under the MIT license.
+**2. Hallucinated symbols in a real Laravel codebase.** Real references (helpers, views, route names, config) produced no findings. Four invented ones were all caught, with hints. This is the output, with the project's own class and helper names replaced:
+
+```
+WARN  class App\Models\Feez not found (expected app/Models/Feez.php): hallucinated, misspelled or not created yet
+WARN  Helper::listForUser() not found in app/Helpers/Helper.php: hallucinated or misspelled method
+WARN  route name 'country-nope' not defined in routes/ (could also come from a package); did you mean 'country-store'?
+WARN  view 'country.missing' not found (expected resources/views/country/missing.blade.php)
+```
+
+**3. Forty real, human-written commits of a production codebase.**
+
+- **Pattern scan:** three sources of false alarms were found and fixed before release. The remaining warnings were genuine review points.
+- **Missing-symbol check:** over 25 commits it reported one finding, and it was a real defect: a class referenced in a commit before its file existed.
+
+**4. A malicious repository.**
+
+- **The attack:** its `.git/config` contained an fsmonitor command, a filter driver and a git hook, each set to create a marker file.
+- **The result:**
+  - the scanners reported all three
+  - `diff-check` refused to run
+  - no marker file was ever created
+  - a symlink to `~/.ssh/id_rsa` was flagged HIGH
+
+**5. Hostile report input.** Script tags, an `onerror` image, an AWS-style key, a password and an ID number were all escaped or masked in the PDF.
+
+**6. The self-test.** It covers 95 cases:
+
+| Group | Cases | What they prove |
+| --- | --- | --- |
+| AI view | 59 | Attacks and AI mistakes are caught |
+| Human view | 17 | Good code stays quiet |
+| Safety | 13 | Hostile repositories are harmless |
+| Report | 6 | Reports are escaped, masked and print to PDF |
+
+All 95 pass.
+
+## Limitations
+
+- **It reduces risk; it does not prove code is safe.** The scans are pattern- and file-based. They catch common mistakes, not every mistake, and someone determined to evade them can.
+- **It cannot judge business logic.** The build steps make the agent state and test the rule, but a person must still review every change.
+- **Symbol checks have limits.** They cover PHP classes and static methods, Laravel views, routes and config files, and JS/TS and Python relative imports. They do not check instance methods, packages outside your project, or dynamic names. Route and view names from packages may be reported as missing.
+- **The skill is instructions, not enforcement.** Hard limits belong in `.claude/settings.json` permission rules, CI and access control (see Hardening).
+- **It needs `bash` and `git`.** On Windows that means Git Bash. Syntax checks run only for languages whose tools are installed. PDFs need Chrome, Edge, Chromium or wkhtmltopdf; otherwise you get an HTML file to print.
+- **Warnings need judgement.** WARN findings are leads for a reviewer to verify, not proof of a bug.
 
 ## Hardening (recommended)
-
-Add hard limits in `.claude/settings.json`:
 
 ```json
 { "permissions": {
@@ -154,14 +180,49 @@ In CI, run:
 bash skills/safe-ai-coding/scripts/diff-check.sh --format=tsv --fail-on=warn origin/main
 ```
 
+## Why it matters
+
+- **45%** of AI-generated code samples failed security tests in a 2025 study ([Veracode, Jul 2025](https://www.veracode.com/blog/genai-code-security-report/)).
+- Code models invented **205,474** unique package names that do not exist ([USENIX Security 2025](https://arxiv.org/abs/2406.10279)).
+- **Prompt injection** is the number-one risk in the OWASP Top 10 for LLM Applications 2025 ([OWASP LLM01](https://genai.owasp.org/llmrisk/llm01-prompt-injection/)).
+- Hidden unicode in agent rules files can carry invisible instructions ([Pillar Security, Mar 2025](https://www.pillar.security/blog/new-vulnerability-in-github-copilot-and-cursor-how-hackers-can-weaponize-code-agents)).
+
+## Documentation
+
+- [Quick start guide (PDF)](docs/safe-ai-coding-quick-start.pdf)
+- [Complete guide, English (PDF)](docs/safe-ai-coding-complete-guide.pdf)
+- [Complete guide, Roman Urdu (PDF)](docs/safe-ai-coding-complete-guide-roman-urdu.pdf)
+- [Example report, English (PDF)](docs/report-example-en.pdf), and the [Roman Urdu example](docs/report-example-ur.pdf)
+- [SKILL.md](skills/safe-ai-coding/SKILL.md): the exact rules the agent follows
+
+## FAQ
+
+**How do I make Claude Code safer?**
+Install safe-ai-coding, and add permission rules in `.claude/settings.json` for commands that must never run without asking.
+
+**Can it detect AI hallucinations in code?**
+Yes. It checks that the classes, static methods, views, routes, config files and imports used in new code exist in your repository.
+
+**Does it protect against prompt injection?**
+Yes. Content is treated as data, never as orders, and instruction files (also inside dependencies) are scanned for hidden or malicious instructions.
+
+**Does it send my code anywhere?**
+No. Everything runs locally, and it never executes code from the repository it checks.
+
+**Does it replace human code review?**
+No. A person should still approve every change.
+
+**Is it free for commercial use?**
+Yes, under the MIT license.
+
 ## Author
 
 **Sami Hussain** · [x8code.com](https://x8code.com) · samihussain9t9@gmail.com
 
-Issues and suggestions are welcome: [open an issue](https://github.com/sami-hussain-dev/safe-ai-coding/issues).
+Suggestions and bug reports are welcome: [open an issue](https://github.com/sami-hussain-dev/safe-ai-coding/issues). For security issues, see [SECURITY.md](SECURITY.md).
 
 ## License
 
 [MIT](LICENSE) © 2026 Sami Hussain, x8code.com
 
-<!-- Keywords: Claude Code skill, Claude Code plugin, AI coding agent safety, AI code review, AI guardrails, prompt injection protection, hallucinated code detection, LLM security, secure coding, supply chain security, vibe coding safety, AI pair programming, Laravel security, code review automation -->
+<!-- Keywords: Claude Code skill, Claude Code plugin, Claude Code guardrails, Claude Code security, AI coding agent safety, AI code review, AI guardrails, prompt injection protection, hallucinated code detection, LLM security, secure coding, supply chain security, vibe coding safety -->

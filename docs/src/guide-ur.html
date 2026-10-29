@@ -214,10 +214,10 @@ git clone --depth 1 https://github.com/sami-hussain-dev/safe-ai-coding.git "$env
   </table>
   <h3>Ek mukammal misaal</h3>
   <ol class="steps">
-    <li><b>Aap kehte hain</b>"Fee voucher list par export ka button laga do."</li>
-    <li><b>Build mode</b>Agent pehle rule bayan karta hai: kaun kis ke vouchers export kar sakta hai. Phir project conventions parhta hai, exam center list wala maujooda export dhoond kar usi ka andaaz copy karta hai, check karta hai ke jo helper aur route use karega woh maujood hain, aur teen files ka plan banata hai.</li>
+    <li><b>Aap kehte hain</b>"Invoice list par export ka button laga do."</li>
+    <li><b>Build mode</b>Agent pehle rule bayan karta hai: kaun kis ki invoices export kar sakta hai. Phir project conventions parhta hai, orders list wala maujooda export dhoond kar usi ka andaaz copy karta hai, check karta hai ke jo helper aur route use karega woh maujood hain, aur teen files ka plan banata hai.</li>
     <li><b>Gate</b>Naye route ke liye database mein permission row chahiye. Agent batata hai ke kya chalayega, kis database par, kya bigar sakta hai, kaise wapas hoga, aur mehfooz option kya hai. Phir aap ki haan ka intezar karta hai.</li>
-    <li><b>Saboot</b>Files ka syntax check karta hai, export nazim aur admin dono ban kar chalata hai, aur kisi doosri jamia ki ID bhi aazmata hai.</li>
+    <li><b>Saboot</b>Files ka syntax check karta hai, export aam user aur admin dono ban kar chalata hai, aur kisi doosre customer ki ID bhi aazmata hai.</li>
     <li><b>Review mode</b><code>diff-check.sh</code> chalta hai. Agent diff ko AI lens aur human lens se parhta hai, findings ki table aur faisla "Ready with notes" dikhata hai.</li>
     <li><b>Report (sirf kehne par)</b>"Is kaam ki report PDF mein do." Aap ke Desktop par PDF aa jati hai.</li>
   </ol>
@@ -274,7 +274,7 @@ git clone --depth 1 https://github.com/sami-hussain-dev/safe-ai-coding.git "$env
       </ul></li>
     <li><b>Saabit karo</b>Har badli hui file ka syntax check karta hai. Mutalliqa tests chalata hai, lekin pehle dekhta hai ke woh kaun sa database use karte hain. Feature chala kar edge cases aazmata hai, phir apne kaam par review mode chalata hai.</li>
   </ol>
-  <div class="callout tip"><b>Edge cases jo hamesha dekhe jate hain</b><p>Khali ya ghayab input, ghalat type, had se lamba; kisi aur user ya jamia ki ID; sab se kam ikhtiyar wala role; Urdu, Arabi aur emoji text; time zones aur period ki hadood par tareekhein; ek hi waqt par do requests.</p></div>
+  <div class="callout tip"><b>Edge cases jo hamesha dekhe jate hain</b><p>Khali ya ghayab input, ghalat type, had se lamba; kisi aur user ya tenant ki ID; sab se kam ikhtiyar wala role; Urdu, Arabi aur emoji text; time zones aur period ki hadood par tareekhein; ek hi waqt par do requests.</p></div>
 </section>
 
 <section class="chapter">
@@ -312,7 +312,7 @@ git clone --depth 1 https://github.com/sami-hussain-dev/safe-ai-coding.git "$env
   </table>
 <pre>HIGH  app/Http/Controllers/FeeController.php:42  SQL built from request input: SQL injection; use bound parameters
       &gt; $rows = DB::select("SELECT * FROM fees WHERE id = $request->id");
-WARN  app/Http/Controllers/FeeController.php:58  Helper::jamiaListForUser() not found in app/Helpers/ModuleHelper.php
+WARN  app/Http/Controllers/FeeController.php:58  AccessHelper::listForUser() not found in app/Helpers/AccessHelper.php
 WARN  .claude/safe-code-rules.tsv  [project rule] routes changed but no permission seeder changed</pre>
   <h3>Do lens (nazariye)</h3>
   <div class="grid2">
@@ -394,8 +394,8 @@ Mehfooz option: pehle apne local database par chala kar nateeja dikha doon
   <h3><code>.claude/safe-code-conventions.md</code></h3>
   <p>Is file mein project ke lazmi usool hote hain, woh files jin ki nakal karni hai, aur woh ghaltiyan jo copy nahi karni. Build mode kuch bhi likhne se pehle ise parhta hai, aur review mode is ke mutabiq jaanch karta hai. Maslan:</p>
   <ul>
-    <li>Jamia lists hamesha <code>ModuleHelper::jamiaList()</code> se.</li>
-    <li><code>PermissionTableSeeder</code> kabhi nahi chalana, kyunki woh permissions table saaf kar deta hai.</li>
+    <li>Customer lists hamesha <code>AccessHelper::visibleCustomers()</code> se.</li>
+    <li>Purana <code>PermissionsSeeder</code> kabhi nahi chalana, kyunki woh permissions table saaf kar deta hai.</li>
   </ul>
   <h3><code>.claude/safe-code-rules.tsv</code></h3>
   <p>Review scan ke liye project ke apne red-flag rules, har line mein ek, tabs se alag:</p>
@@ -407,8 +407,8 @@ Mehfooz option: pehle apne local database par chala kar nateeja dikha doon
     <tr><td><code>CHANGE:WARN</code></td><td>Koi badli hui file PATH_REGEX se mile, aur koi badli hui file UNLESS_REGEX se na mile</td><td>"X badla to Y bhi badalna tha"</td></tr>
     <tr><td><code>BASE</code></td><td>Review ke liye default base branch</td><td><code>BASE&#9;origin/master</code></td></tr>
   </table>
-<pre>WARN        \.php$   Jamia::(where|all|get)   Jamia query: use ModuleHelper::jamiaList()
-FILE:WARN   \.php$   exam_request|ExamReq     shared table touched without is_improved    is_improved
+<pre>WARN        \.php$   Customer::(where|all|get)   Customer query: use AccessHelper::visibleCustomers()
+FILE:WARN   \.php$   orders|Order::       orders touched without a tenant filter    tenant_id
 CHANGE:WARN ^database/migrations/   .   schema changed but claude_docs/db.md was not updated   ^claude_docs/db[.]md$</pre>
   <div class="callout"><b>Hifazat andar hi hai</b><p>Jis rule ka regex compile na ho, ya jis ka message agent ko hukm dene jaisa ho, scanner use chhod deta hai. Har rule message par <code>[project rule]</code> likha hota hai. Backslash ki jagah <code>[(]</code> aur <code>[[:space:]]</code> use karein.</p></div>
 </section>

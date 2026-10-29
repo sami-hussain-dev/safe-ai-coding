@@ -1,151 +1,102 @@
 {
   "language": "en",
-  "title": "Fee discount applied twice, and the exam-center form showed every institution",
+  "title": "Coupon applied twice at checkout, and any customer could download another customer's invoice",
   "status": "fixed",
-  "project": "School Board Panel (demo)",
-  "branch": "fix/voucher-discount-jamia-scope",
-  "commit": "4f9c2e1",
-  "date": "2026-10-28",
+  "project": "ShopFlow online store (demo)",
+  "branch": "fix/checkout-coupon-invoice-access",
+  "commit": "a71c0d9",
+  "date": "2026-10-29",
   "prepared_by": "Claude (AI coding agent)",
-  "requested_by": "Sana Iqbal, QA lead",
-  "summary": "Two defects turned up while the fee and exam-center screens were tested. Both are fixed on this branch.\n\nVoucher generation took the sibling discount off twice, so 312 vouchers in the staging batch were PKR 450 too low. The new exam-center form listed every institution to nazims and saved a center for any institution id it was sent. The voucher loop now uses the amount the query has already discounted, and the form and its save action both go through the role-aware `ModuleHelper::jamiaList()`.\n\nNew feature tests cover both rules, and a person repeated the checks by hand while logged in with the least-privileged role.",
+  "requested_by": "Maria Lopez, QA lead",
+  "summary": "Two defects were found while the checkout and order-history pages were tested before release. Both are fixed on this branch.\n\nWhen a shopper refreshed the cart page, the coupon was applied a second time, so 1,240 orders in the test run were charged too little (USD 3,180 in total). Separately, the invoice download link accepted any order number: a logged-in shopper could change the number in the address bar and download someone else's invoice, with their name, address and items.\n\nThe coupon is now calculated once from the cart subtotal and stored with the order, and every invoice is loaded only through the signed-in customer's own orders. New tests cover both rules, and a person repeated the checks by hand with two separate customer accounts.",
   "problems": [
     {
       "id": "P1",
-      "title": "Fee discount applied twice in voucher generation",
+      "title": "Coupon discount applied twice when the cart is refreshed",
       "severity": "high",
-      "where": "`VoucherController::generate()` in `app/Http/Controllers/VoucherController.php`",
-      "symptom": "Students with a sibling discount got vouchers below the expected amount. Example: fee 5,000 with a 10% discount should be 4,500; the voucher said 4,050.",
-      "root_cause": "The fee query already returns `net_amount` with the discount taken off. The loop that writes the `voucher_detail` rows then took the discount off a second time. Each code path assumed the other one did not apply it, and no test had a discounted student.",
-      "impact": "In staging batch B-17, 312 of 1,240 vouchers were PKR 450 too low: about PKR 140,400 the board would not have collected. Families would have been asked for the difference later.",
-      "evidence": "Voucher V-2026-00417: fee 5,000, discount 10%, printed 4,050.\nThe query result for the same student already showed `net_amount = 4500`.",
+      "where": "`applyCoupon()` in `src/services/cart.ts`",
+      "symptom": "A 10% coupon on a USD 50.00 cart gave a total of USD 40.50 instead of USD 45.00 after the page was refreshed once.",
+      "root_cause": "`applyCoupon()` took the discount off the current cart total instead of the original subtotal, and it ran again on every cart refresh. Nothing recorded that the coupon was already applied.",
+      "impact": "In the staging test run, 1,240 of 9,800 orders were under-charged, USD 3,180 in total. In production this would be lost revenue and manual refunds or re-billing.",
+      "evidence": "Test order SF-20261029-0417: subtotal 50.00, coupon SAVE10, charged 40.50.\nThe cart log shows `applyCoupon` called twice for the same cart within 4 seconds.",
       "found_by": "test"
     },
     {
       "id": "P2",
-      "title": "Exam-center form shows every institution to a nazim and accepts any institution id",
+      "title": "Invoice download did not check who owns the order",
       "severity": "critical",
-      "where": "`ExamCenterController::create()` and `store()`",
-      "symptom": "A nazim, who manages one institution, opened the new exam-center form and saw all 287 enabled institutions in the dropdown. Saving with another institution selected also worked.",
-      "root_cause": "The form built its dropdown with `Jamia::where('is_enabled', 1)->get()` instead of the project helper `ModuleHelper::jamiaList()`, which applies the superadmin / nazim / staff split. The save action trusted the submitted `jamia_id` and never checked it against the user's own list.",
-      "impact": "Any nazim could read the names of all institutions and create exam centers for institutions they do not manage. That breaks the separation of data between institutions and can send candidates to the wrong center.",
-      "evidence": "Logged in as the test user `nazim_demo` (institution #12): the dropdown listed 287 institutions. A POST with `jamia_id=45` returned HTTP 302 and created a center for institution #45.",
+      "where": "`GET /api/orders/:id/invoice` in `src/routes/orders.ts`",
+      "symptom": "Signed in as test customer A, opening `/api/orders/1002/invoice` downloaded the invoice of customer B.",
+      "root_cause": "The route loaded the order with `Order.findById(req.params.id)` and only checked that someone was signed in, not that the order belonged to them. Order numbers are sequential, so they are easy to guess.",
+      "impact": "Any customer could read other customers' names, addresses, phone numbers and purchases: a personal-data leak that would have to be reported in many countries.",
+      "evidence": "Request as customer A (id 77) for order 1002 (owned by customer 81) returned HTTP 200 with the PDF.",
       "found_by": "human"
     }
   ],
   "fixes": [
     {
       "id": "F1",
-      "title": "Use the discounted amount from the query as it is",
+      "title": "Calculate the coupon once, from the subtotal",
       "fixes": ["P1"],
-      "change": "Removed the second discount calculation from the voucher loop. Each `voucher_detail` row now stores `net_amount` from the query. Added a feature test with one discounted and one non-discounted student.",
-      "why_correct": "The discount is now taken off in exactly one place, the query, which is also what the fee register report reads, so vouchers and the register agree. The new test fails on the old code (4,050) and passes on the new code (4,500).",
-      "files": ["app/Http/Controllers/VoucherController.php", "tests/Feature/VoucherDiscountTest.php"],
-      "before": "foreach ($rows as $row) {\n    // net_amount comes from the query, already discounted\n    $amount = $row->net_amount\n        - ($row->net_amount * $row->discount_pct / 100);\n    VoucherDetail::create([\n        'voucher_id' => $voucher->id,\n        'std_id'     => $row->std_id,\n        'amount'     => $amount,\n    ]);\n}",
-      "after": "foreach ($rows as $row) {\n    // net_amount comes from the query, already discounted\n    VoucherDetail::create([\n        'voucher_id' => $voucher->id,\n        'std_id'     => $row->std_id,\n        'amount'     => $row->net_amount,\n    ]);\n}",
-      "code_language": "php"
+      "change": "The discount is now calculated from `cart.subtotal`, and the applied coupon is stored on the cart. Applying the same coupon again changes nothing. A unique index on (cart_id, coupon_code) blocks duplicates at database level.",
+      "why_correct": "The total no longer depends on how many times the page loads, and the database refuses a second copy even if two requests arrive together.",
+      "files": ["src/services/cart.ts", "migrations/20261029_add_cart_coupon_unique.ts", "tests/cart.coupon.test.ts"],
+      "before": "export function applyCoupon(cart: Cart, coupon: Coupon) {\n  cart.total = cart.total * (1 - coupon.percent / 100);\n  return cart;\n}",
+      "after": "export function applyCoupon(cart: Cart, coupon: Coupon) {\n  if (cart.couponCode === coupon.code) return cart;\n  cart.couponCode = coupon.code;\n  cart.total = cart.subtotal * (1 - coupon.percent / 100);\n  return cart;\n}",
+      "code_language": "typescript"
     },
     {
       "id": "F2",
-      "title": "Build the institution dropdown with the role-aware helper",
+      "title": "Load invoices only through the customer's own orders",
       "fixes": ["P2"],
-      "change": "`create()` now calls `ModuleHelper::jamiaList()`, the helper the other forms in the project already use.",
-      "why_correct": "The helper implements the three-way role split (superadmin sees all, a nazim sees their own institution, staff see the institutions mapped to them), so the form follows the project rule instead of re-implementing it.",
-      "files": ["app/Http/Controllers/ExamCenterController.php"],
-      "before": "public function create()\n{\n    $jamias = Jamia::where('is_enabled', 1)->get();\n\n    return view('exam_center.add', compact('jamias'));\n}",
-      "after": "public function create()\n{\n    $jamias = ModuleHelper::jamiaList();\n\n    return view('exam_center.add', compact('jamias'));\n}",
-      "code_language": "php"
+      "change": "The route now looks the order up with both the order id and the signed-in customer's id, and answers 404 when it does not match.",
+      "why_correct": "A customer can only reach orders that belong to them. The 404 response does not reveal whether another customer's order exists.",
+      "files": ["src/routes/orders.ts", "tests/orders.invoice.test.ts"],
+      "before": "router.get('/orders/:id/invoice', requireLogin, async (req, res) => {\n  const order = await Order.findById(req.params.id);\n  res.download(invoicePath(order));\n});",
+      "after": "router.get('/orders/:id/invoice', requireLogin, async (req, res) => {\n  const order = await Order.findOne({ _id: req.params.id, customerId: req.user.id });\n  if (!order) return res.sendStatus(404);\n  res.download(invoicePath(order));\n});",
+      "code_language": "typescript"
     },
     {
       "id": "F3",
-      "title": "Reject an institution id the user may not use",
-      "fixes": ["P2"],
-      "change": "`store()` validates `jamia_id` against the ids returned by `ModuleHelper::jamiaList()`. A forged id now fails validation with the normal error message.",
-      "why_correct": "Hiding options in a dropdown is not a security check: the server has to check the value it receives. Validation runs before any write, so nothing is saved for a forged id.",
-      "files": ["app/Http/Controllers/ExamCenterController.php", "tests/Feature/ExamCenterScopeTest.php"],
-      "before": "$request->validate([\n    'jamia_id' => 'required|integer',\n    'title'    => 'required|string|max:150',\n]);",
-      "after": "$allowed = ModuleHelper::jamiaList()->pluck('id')->all();\n\n$request->validate([\n    'jamia_id' => ['required', 'integer', Rule::in($allowed)],\n    'title'    => 'required|string|max:150',\n]);",
-      "code_language": "php"
+      "title": "Tests for both rules",
+      "fixes": ["P1", "P2"],
+      "change": "Added tests: refreshing the cart three times keeps one discount; customer A gets 404 for customer B's invoice and 200 for their own.",
+      "why_correct": "Both tests failed on the old code and pass on the new code, so they guard against the same defect coming back.",
+      "files": ["tests/cart.coupon.test.ts", "tests/orders.invoice.test.ts"]
     }
   ],
   "verification": [
-    {
-      "check": "Feature test: a discounted student's voucher is 4,500",
-      "perspective": "ai",
-      "result": "pass",
-      "detail": "`php artisan test --filter=VoucherDiscountTest`: 2 tests, 6 assertions, on the local SQLite test database."
-    },
-    {
-      "check": "Batch B-17 regenerated on a local copy and compared with the fee register",
-      "perspective": "both",
-      "result": "pass",
-      "detail": "312 vouchers changed, each by +450. The batch total now matches the register."
-    },
-    {
-      "check": "Logged in as `nazim_demo` and opened the exam-center form",
-      "perspective": "human",
-      "result": "pass",
-      "detail": "The dropdown shows only institution #12."
-    },
-    {
-      "check": "Forged POST with another institution's id",
-      "perspective": "human",
-      "result": "pass",
-      "detail": "`jamia_id=45` is rejected with a validation error; no row is created."
-    },
-    {
-      "check": "Superadmin and a staff user still see their full lists",
-      "perspective": "both",
-      "result": "pass",
-      "detail": "Superadmin sees 287 institutions; a staff user mapped to 3 institutions sees those 3."
-    },
-    {
-      "check": "Other forms that build an institution dropdown",
-      "perspective": "human",
-      "result": "partial",
-      "detail": "14 of 19 forms checked and correct. 5 still query institutions directly (see remaining risks)."
-    },
-    {
-      "check": "Two voucher generations running at the same time",
-      "perspective": "ai",
-      "result": "not-run",
-      "detail": "The local setup has no queue worker. Listed as a remaining risk."
-    }
+    { "check": "Automated tests (npm test)", "perspective": "ai", "result": "pass", "detail": "214 tests, 0 failures; the 2 new tests failed before the fix." },
+    { "check": "safe-ai-coding review scan (diff-check)", "perspective": "ai", "result": "pass", "detail": "No HIGH or WARN findings left; 2 INFO about outbound calls, both expected." },
+    { "check": "Missing-symbol check", "perspective": "ai", "result": "pass", "detail": "Every function, import and route used in the change exists." },
+    { "check": "Manual test with two customer accounts", "perspective": "human", "result": "pass", "detail": "Customer A could not open customer B's invoice; both could open their own." },
+    { "check": "Checkout refreshed 5 times with a coupon", "perspective": "human", "result": "pass", "detail": "Total stayed at USD 45.00 on a USD 50.00 cart with SAVE10." },
+    { "check": "Code read by a second developer", "perspective": "both", "result": "partial", "detail": "Approved, with one note: rename `invoicePath` to `invoiceFilePath` later." },
+    { "check": "Load test of checkout", "perspective": "human", "result": "not-run", "detail": "Planned for the release candidate." }
   ],
   "scans": {
-    "before": { "high": 1, "warn": 4, "info": 3 },
-    "after": { "high": 0, "warn": 1, "info": 2 },
-    "note": "Pattern scan with `diff-check.sh origin/master`. Before the fix, the HIGH finding was the unscoped institution query. The one WARN left is a shared-table rule that does not apply to vouchers; a person reviewed it and accepted it."
+    "before": { "high": 1, "warn": 3, "info": 2 },
+    "after": { "high": 0, "warn": 0, "info": 2 },
+    "note": "The HIGH before the fix was the invoice route reading an order by an id from the request without an ownership check."
   },
   "approvals": [
-    {
-      "action": "Run the feature tests, which reset the test database",
-      "harm": "RefreshDatabase wipes whatever database the tests point to. `.env.testing` was checked first: it points to a local SQLite file, not a shared server.",
-      "decision": "approved",
-      "when": "2026-10-28 11:20"
-    },
-    {
-      "action": "Regenerate voucher batch B-17 on the shared staging server. The user chose the safer option: a local copy.",
-      "harm": "Would overwrite 1,240 vouchers that other testers are using, and cannot be undone without a backup.",
-      "decision": "safer-option",
-      "when": "2026-10-28 12:05"
-    }
+    { "action": "Run the new migration on the local database", "harm": "Adds a unique index; fails if duplicate rows already exist", "decision": "approved", "when": "2026-10-29 11:05" },
+    { "action": "Run the same migration on the shared staging database", "harm": "Locks the carts table for a few seconds; other testers see the change at once", "decision": "safer-option", "when": "2026-10-29 11:20" }
   ],
   "files_changed": [
-    { "path": "app/Http/Controllers/VoucherController.php", "added": 1, "removed": 3 },
-    { "path": "app/Http/Controllers/ExamCenterController.php", "added": 4, "removed": 2 },
-    { "path": "tests/Feature/VoucherDiscountTest.php", "added": 64, "removed": 0 },
-    { "path": "tests/Feature/ExamCenterScopeTest.php", "added": 88, "removed": 0 }
+    { "path": "src/services/cart.ts", "added": 6, "removed": 2 },
+    { "path": "src/routes/orders.ts", "added": 3, "removed": 1 },
+    { "path": "migrations/20261029_add_cart_coupon_unique.ts", "added": 14, "removed": 0 },
+    { "path": "tests/cart.coupon.test.ts", "added": 38, "removed": 0 },
+    { "path": "tests/orders.invoice.test.ts", "added": 31, "removed": 0 }
   ],
   "remaining_risks": [
-    "Five other forms still query institutions directly. They were outside this task and are not fixed yet.",
-    "Vouchers of batch B-17 printed before the fix carry the wrong amount and have to be reissued.",
-    "Two voucher generations running at the same time were not tested."
+    "Orders already charged too little in staging must be corrected before the data is copied anywhere else.",
+    "Other download routes (receipts, shipping labels) use the same pattern and have not been checked yet."
   ],
   "next_steps": [
-    "Finance approves, then the 312 affected vouchers of batch B-17 are reissued.",
-    "Move the five remaining forms to `ModuleHelper::jamiaList()`, one small change each.",
-    "Add a project rule to `.claude/safe-code-rules.tsv` so a direct institution query is flagged in every future change.",
-    "A second developer reads the diff before it is merged."
+    "Run the migration on staging during the quiet hour, as agreed.",
+    "Review the receipts and shipping-label routes for the same ownership check.",
+    "Run the checkout load test before release."
   ]
 }

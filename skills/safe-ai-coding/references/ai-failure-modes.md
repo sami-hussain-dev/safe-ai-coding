@@ -29,7 +29,7 @@ Read the change as three people would:
    - Can they understand it in five minutes?
    - Do the names say what things do?
    - Is it the same style as the rest of the file?
-2. **The business owner:** does it do the rule they described, including the awkward cases (the nazim role, the previous year, the improvement candidate, the cancelled voucher)?
+2. **The business owner:** does it do the rule they described, including the awkward cases (the lowest role, the previous period, the refunded order, the cancelled invoice)?
 3. **The end user:**
    - Is the error message useful?
    - Is the page still fast with real data volumes?

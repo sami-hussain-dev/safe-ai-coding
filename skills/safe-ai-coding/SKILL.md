@@ -362,8 +362,8 @@ A repository can teach this skill its own rules with two files. Both count as ag
 
   ```
   BASE	origin/master
-  WARN	\.php$	Jamia::(where|all|get)	Jamia query: use ModuleHelper::jamiaList() for role-aware scoping
-  FILE:WARN	\.php$	exam_request|ExamReq	shared table touched without an is_improved filter	is_improved
+  WARN	\.php$	Customer::(where|all|get)	Customer query: use AccessHelper::visibleCustomers() for tenant scoping
+  FILE:WARN	\.php$	orders|Order::	orders touched without a tenant filter	tenant_id
   CHANGE:WARN	^database/migrations/	.	schema changed but claude_docs/db.md was not updated	^claude_docs/db[.]md$
   ```
 
