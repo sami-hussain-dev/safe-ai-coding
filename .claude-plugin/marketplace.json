@@ -1,0 +1,12 @@
+{
+  "name": "safe-ai-coding",
+  "description": "safe-ai-coding by Sami Hussain (x8code.com): guardrails for AI coding agents",
+  "owner": { "name": "Sami Hussain", "email": "samihussain9t9@gmail.com", "url": "https://x8code.com" },
+  "plugins": [
+    {
+      "name": "safe-ai-coding",
+      "source": "./",
+      "description": "Asks before risky actions, catches AI coding mistakes, reviews every change, writes PDF reports on request."
+    }
+  ]
+}

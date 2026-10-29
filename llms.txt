@@ -1,0 +1,30 @@
+# safe-ai-coding
+
+> safe-ai-coding is a free, open-source (MIT) skill for Claude Code that makes AI coding agents safer. It asks permission before risky actions and explains the possible harm, catches typical AI coding mistakes, reviews every change from an AI and a human perspective, and produces a PDF report of what was wrong and what was fixed when the user asks. Created by Sami Hussain (x8code.com).
+
+## What it does
+
+- Asks before risky actions (installs, database writes, destructive git or file commands, secrets, data leaving the machine, agent config changes) and explains the harm, whether it can be undone, and a safer option.
+- Catches AI coding mistakes: invented (hallucinated) classes, methods, routes, views and imports; elided code such as "rest of the code unchanged"; pasted chat text; SQL, command and path injection; leaked secrets; destructive migrations; weakened tests.
+- Scans a repository before an agent works in it: prompt-injection text in instruction files (CLAUDE.md, AGENTS.md, Cursor and Copilot rules, also inside dependencies), malicious git config and hooks, install hooks, package sources, symlinks to private keys, hidden unicode.
+- Reviews each change through an AI lens and a human lens and gives a clear verdict.
+- Produces a PDF report (English or Roman Urdu) only when the user asks.
+- Works with any language: PHP/Laravel, JavaScript/TypeScript, Python, Java, C#, Go, Ruby.
+- Runs locally. It never executes repository code and sends nothing anywhere.
+
+## Install
+
+- Claude Code plugin: /plugin marketplace add sami-hussain-dev/safe-ai-coding, then /plugin install safe-ai-coding@safe-ai-coding
+- Or: git clone --depth 1 https://github.com/sami-hussain-dev/safe-ai-coding.git ~/.claude/skills/safe-ai-coding
+
+## Key files
+
+- [README](https://github.com/sami-hussain-dev/safe-ai-coding/blob/main/README.md): install, usage, FAQ
+- [SKILL.md](https://github.com/sami-hussain-dev/safe-ai-coding/blob/main/skills/safe-ai-coding/SKILL.md): the rules the agent follows
+- [Quick start guide (PDF)](https://github.com/sami-hussain-dev/safe-ai-coding/blob/main/docs/safe-ai-coding-quick-start.pdf)
+- [Complete guide, English (PDF)](https://github.com/sami-hussain-dev/safe-ai-coding/blob/main/docs/safe-ai-coding-complete-guide.pdf)
+- [Complete guide, Roman Urdu (PDF)](https://github.com/sami-hussain-dev/safe-ai-coding/blob/main/docs/safe-ai-coding-complete-guide-roman-urdu.pdf)
+
+## Author
+
+Sami Hussain, x8code.com, samihussain9t9@gmail.com

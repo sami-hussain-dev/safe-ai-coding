@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>safe-ai-coding: free Claude Code skill that makes AI coding agents safe</title>
+<meta name="description" content="safe-ai-coding is a free, open-source Claude Code skill by Sami Hussain (x8code.com). It makes AI coding agents ask before risky actions, catches hallucinated code, injection and leaked secrets, reviews every change and writes PDF reports.">
+<meta name="keywords" content="Claude Code skill, AI coding agent safety, AI code review, prompt injection protection, hallucinated code detection, secure coding, Claude Code plugin, AI guardrails">
+<meta name="author" content="Sami Hussain">
+<link rel="canonical" href="https://sami-hussain-dev.github.io/safe-ai-coding/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="safe-ai-coding: make AI coding agents safe">
+<meta property="og:description" content="Free Claude Code skill: asks before risky actions, catches AI coding mistakes, reviews every change, writes PDF reports.">
+<meta property="og:url" content="https://sami-hussain-dev.github.io/safe-ai-coding/">
+<meta name="twitter:card" content="summary">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "SoftwareApplication",
+      "name": "safe-ai-coding",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "Windows, macOS, Linux",
+      "softwareVersion": "2.0.0",
+      "license": "https://opensource.org/licenses/MIT",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "description": "A Claude Code skill that makes AI coding agents safer: permission requests that explain harm, detection of hallucinated symbols, elided code, injection and leaked secrets, two-lens code review and on-request PDF reports.",
+      "url": "https://github.com/sami-hussain-dev/safe-ai-coding",
+      "downloadUrl": "https://github.com/sami-hussain-dev/safe-ai-coding",
+      "author": { "@id": "#sami" },
+      "publisher": { "@id": "#x8code" }
+    },
+    { "@type": "Person", "@id": "#sami", "name": "Sami Hussain", "email": "mailto:samihussain9t9@gmail.com", "url": "https://x8code.com", "worksFor": { "@id": "#x8code" } },
+    { "@type": "Organization", "@id": "#x8code", "name": "x8code", "url": "https://x8code.com" },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        { "@type": "Question", "name": "How do I make Claude Code safer?", "acceptedAnswer": { "@type": "Answer", "text": "Install the free safe-ai-coding skill. It makes the agent ask permission before risky actions, explain the possible harm, catch typical AI coding mistakes and review every change. Add permission rules in .claude/settings.json for hard limits." } },
+        { "@type": "Question", "name": "Can safe-ai-coding detect AI hallucinations in code?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Its review checks that classes, static methods, views, routes, config files and imports used in new code exist in the repository, and flags placeholders such as 'rest of the code unchanged'." } },
+        { "@type": "Question", "name": "Does safe-ai-coding protect against prompt injection?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. It treats content as data, not instructions, and scans CLAUDE.md, AGENTS.md, Cursor and Copilot rule files, including inside dependencies, for hidden or malicious instructions and invisible unicode." } },
+        { "@type": "Question", "name": "Is safe-ai-coding free?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. It is open source under the MIT license, created by Sami Hussain (x8code.com)." } }
+      ]
+    }
+  ]
+}
+</script>
+<style>
+:root { --navy:#13205b; --indigo:#2f3fb0; --ink:#232838; --muted:#5b6275; --line:#dde2ee; --soft:#f5f7fc; }
+* { box-sizing: border-box; }
+body { margin:0; font:16px/1.6 "Segoe UI", -apple-system, Roboto, Arial, sans-serif; color:var(--ink); background:#fff; }
+header { background:linear-gradient(160deg,#0d1640,#1a2a7a 60%,#10215f); color:#fff; padding:56px 20px 64px; }
+.wrap { max-width:960px; margin:0 auto; }
+h1 { font-size:42px; margin:0 0 12px; } h1 span { color:#a9b8ff; }
+header p { font-size:19px; color:#dfe5ff; max-width:720px; }
+.btn { display:inline-block; margin:18px 10px 0 0; padding:11px 20px; border-radius:8px; background:#fff; color:var(--navy); font-weight:600; text-decoration:none; }
+.btn.alt { background:transparent; color:#fff; border:1px solid rgba(255,255,255,.5); }
+section { padding:40px 20px; } section:nth-child(even) { background:var(--soft); }
+h2 { color:var(--navy); font-size:28px; margin:0 0 16px; }
+.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:16px; }
+.card { background:#fff; border:1px solid var(--line); border-radius:10px; padding:18px; }
+.card h3 { margin:0 0 6px; color:var(--indigo); font-size:18px; }
+pre { background:#0f1630; color:#e6ebff; padding:14px 16px; border-radius:8px; overflow-x:auto; font:14px/1.5 Consolas, Menlo, monospace; }
+code { font-family:Consolas, Menlo, monospace; }
+footer { padding:28px 20px; color:var(--muted); font-size:14px; border-top:1px solid var(--line); }
+a { color:var(--indigo); }
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <h1>safe-ai-coding <span>for Claude Code</span></h1>
+  <p>A free, open-source skill that makes AI coding agents safe: it asks before anything risky and explains the harm, catches the mistakes AI makes, and reviews every change like a careful teammate.</p>
+  <a class="btn" href="https://github.com/sami-hussain-dev/safe-ai-coding">Get it on GitHub</a>
+  <a class="btn alt" href="https://github.com/sami-hussain-dev/safe-ai-coding/blob/main/docs/safe-ai-coding-quick-start.pdf">Quick start guide (PDF)</a>
+</div></header>
+
+<section><div class="wrap">
+  <h2>Install</h2>
+    <h3>Option 1: Claude Code plugin (recommended)</h3>
+  <p>Type these two lines inside Claude Code:</p>
+<pre>/plugin marketplace add sami-hussain-dev/safe-ai-coding
+/plugin install safe-ai-coding@safe-ai-coding</pre>
+  <h3>Option 2: one git command</h3>
+<pre># macOS, Linux or Git Bash
+git clone --depth 1 https://github.com/sami-hussain-dev/safe-ai-coding.git ~/.claude/skills/safe-ai-coding
+
+# Windows PowerShell
+git clone --depth 1 https://github.com/sami-hussain-dev/safe-ai-coding.git "$env:USERPROFILE\.claude\skills\safe-ai-coding"</pre>
+  <p>Start a new Claude Code session (or run <code>/reload-plugins</code>). That is all. Pick one option, not both.</p>
+  <table>
+    <tr><th style="width:18%">To</th><th>Plugin</th><th>Git</th></tr>
+    <tr><td>Update</td><td><code>/plugin</code> &rarr; Marketplaces &rarr; safe-ai-coding &rarr; Update</td><td><code>git -C ~/.claude/skills/safe-ai-coding pull</code></td></tr>
+    <tr><td>Remove</td><td><code>/plugin uninstall safe-ai-coding@safe-ai-coding</code></td><td>Delete the folder</td></tr>
+  </table>
+
+</div></section>
+
+<section><div class="wrap">
+  <h2>What it does</h2>
+  <div class="grid">
+    <div class="card"><h3>Asks before harm</h3><p>Installs, database writes, deleting files, git pushes, secrets, data leaving the machine: the agent explains the possible damage, whether it can be undone and a safer option, then waits for your yes.</p></div>
+    <div class="card"><h3>Catches AI mistakes</h3><p>Hallucinated classes, methods, routes, views and imports; "rest of the code unchanged" placeholders; SQL and command injection; leaked keys; destructive migrations; weakened tests.</p></div>
+    <div class="card"><h3>Protects the agent</h3><p>Scans repositories for prompt-injection text in CLAUDE.md, AGENTS.md and rules files (also in dependencies), malicious git config and hooks, install scripts and hidden unicode.</p></div>
+    <div class="card"><h3>Reviews and reports</h3><p>Every change is reviewed through an AI lens and a human lens. On request, a polished PDF report shows what was wrong, what was fixed and the evidence.</p></div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <h2>Frequently asked questions</h2>
+  <h3>How do I make Claude Code safer?</h3><p>Install safe-ai-coding, and add permission rules in <code>.claude/settings.json</code> for commands you never want run without asking.</p>
+  <h3>Can it detect AI hallucinations in code?</h3><p>Yes: it checks that the classes, methods, views, routes, config files and imports used in new code exist in your repository.</p>
+  <h3>Does it protect against prompt injection?</h3><p>Yes: content is treated as data, and instruction files are scanned for hidden or malicious instructions.</p>
+  <h3>Does it send my code anywhere?</h3><p>No. Everything runs locally and it never executes repository code.</p>
+  <h3>Is it free?</h3><p>Yes, MIT licensed.</p>
+</div></section>
+
+<footer><div class="wrap">safe-ai-coding 2.0 &middot; Created by <strong>Sami Hussain</strong> &middot; <a href="https://x8code.com">x8code.com</a> &middot; <a href="mailto:samihussain9t9@gmail.com">samihussain9t9@gmail.com</a> &middot; MIT License</div></footer>
+</body>
+</html>

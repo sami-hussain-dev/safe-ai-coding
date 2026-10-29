@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>safe-ai-coding Quick Start: make AI coding agents safe in 2 minutes</title>
+<meta name="description" content="Quick start guide for safe-ai-coding, a free open-source Claude Code skill by Sami Hussain (x8code.com) that makes AI coding agents ask before risky actions, catch AI coding mistakes and review every change.">
+<meta name="author" content="Sami Hussain, x8code.com">
+<link rel="stylesheet" href="guide.css">
+</head>
+<body>
+
+<div class="cover">
+  <div class="inner">
+    <span class="badge">Free &middot; open source &middot; MIT &middot; version 2.0</span>
+    <h1>safe-ai-coding<br><span>Quick Start Guide</span></h1>
+    <p class="sub">Make your AI coding agent safe in two minutes. It asks before anything risky, catches the mistakes AI makes, and reviews every change like a careful teammate.</p>
+    <svg class="shield" viewBox="0 0 120 140" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8fa2ff"/><stop offset="1" stop-color="#3fd1bf"/></linearGradient></defs>
+      <path d="M60 4 L112 24 V64 C112 100 88 124 60 136 C32 124 8 100 8 64 V24 Z" fill="url(#g)" opacity=".92"/>
+      <path d="M60 16 L100 31 V64 C100 93 81 112 60 122 C39 112 20 93 20 64 V31 Z" fill="#101d5a" opacity=".55"/>
+      <path d="M38 70 L54 86 L84 52" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <div class="promises">
+      <div class="promise"><b>1. Install</b><span>Two commands in Claude Code, or one git command.</span></div>
+      <div class="promise"><b>2. Work as usual</b><span>Ask for features and fixes in your own words. The skill guides the agent.</span></div>
+      <div class="promise"><b>3. Stay in control</b><span>Risky steps wait for your "yes", with the possible harm explained first.</span></div>
+    </div>
+    <div class="meta"><span>For developers everywhere</span><span>By Sami Hussain &middot; x8code.com</span></div>
+  </div>
+</div>
+
+<main>
+
+<section>
+  <h2 class="chapter"><span class="num">1</span>What is safe-ai-coding?</h2>
+  <p class="lead"><strong>safe-ai-coding is a free skill for Claude Code that makes AI coding agents safer.</strong> When the agent writes or reviews code, the skill makes it follow the habits of a careful senior developer, and stop to ask before doing anything that could cause damage.</p>
+  <div class="grid3">
+    <div class="tile red"><span class="big">45%</span><span class="what">of AI-generated code samples failed security tests in a 2025 study</span><span class="src">Veracode, July 2025</span></div>
+    <div class="tile amber"><span class="big">205,474</span><span class="what">made-up package names produced by code models; attackers can register them</span><span class="src">USENIX Security 2025</span></div>
+    <div class="tile"><span class="big">#1</span><span class="what">Prompt injection is the top risk for LLM applications</span><span class="src">OWASP, 2025</span></div>
+  </div>
+  <h3>What you get</h3>
+  <div class="grid2">
+    <div class="card"><h4>It asks before harm</h4><p>Installs, database changes, deleting files, git pushes, secrets, sending data out: the agent stops, explains what could go wrong and whether it can be undone, and waits for your yes.</p></div>
+    <div class="card"><h4>It catches AI mistakes</h4><p>Methods and files that do not exist, "rest of the code unchanged" placeholders, SQL injection, leaked keys, risky migrations, weakened tests, and more than 50 other checks.</p></div>
+    <div class="card"><h4>It reviews like a team</h4><p>Every change is read twice: once for the ways AI code fails, once as the teammate who will maintain it. You get a clear verdict: Ready, Ready with notes, or Not ready.</p></div>
+    <div class="card"><h4>It protects the agent itself</h4><p>Before work starts, it scans a repository for hidden instructions, malicious git settings, dangerous install scripts and links to your private keys.</p></div>
+  </div>
+  <div class="callout ok"><b>Safe by design</b><p>Everything runs on your machine. It never runs code from the repository it checks, and it sends nothing anywhere.</p></div>
+</section>
+
+<section class="chapter">
+  <h2 class="chapter"><span class="num">2</span>Install in two minutes</h2>
+    <h3>Option 1: Claude Code plugin (recommended)</h3>
+  <p>Type these two lines inside Claude Code:</p>
+<pre>/plugin marketplace add sami-hussain-dev/safe-ai-coding
+/plugin install safe-ai-coding@safe-ai-coding</pre>
+  <h3>Option 2: one git command</h3>
+<pre><span class="c"># macOS, Linux or Git Bash</span>
+git clone --depth 1 https://github.com/sami-hussain-dev/safe-ai-coding.git ~/.claude/skills/safe-ai-coding
+
+<span class="c"># Windows PowerShell</span>
+git clone --depth 1 https://github.com/sami-hussain-dev/safe-ai-coding.git "$env:USERPROFILE\.claude\skills\safe-ai-coding"</pre>
+  <p>Start a new Claude Code session (or run <code>/reload-plugins</code>). That is all. Pick one option, not both.</p>
+  <table>
+    <tr><th style="width:18%">To</th><th>Plugin</th><th>Git</th></tr>
+    <tr><td>Update</td><td><code>/plugin</code> &rarr; Marketplaces &rarr; safe-ai-coding &rarr; Update</td><td><code>git -C ~/.claude/skills/safe-ai-coding pull</code></td></tr>
+    <tr><td>Remove</td><td><code>/plugin uninstall safe-ai-coding@safe-ai-coding</code></td><td>Delete the folder</td></tr>
+  </table>
+
+  <h3>Check it works (optional, 30 seconds)</h3>
+  <p>Type this inside Claude Code:</p>
+<pre>/safe-ai-coding:safe-ai-coding self-test
+<span class="c"># Result: 95 passed, 0 failed</span></pre>
+  <table>
+    <tr><th style="width:30%">You need</th><th>Notes</th></tr>
+    <tr><td>Claude Code</td><td>Terminal, VS Code, JetBrains or desktop app</td></tr>
+    <tr><td><code>git</code> and <code>bash</code></td><td>On Windows, install Git for Windows (it includes Git Bash and Perl)</td></tr>
+    <tr><td>Chrome or Edge</td><td>Optional, only for PDF reports</td></tr>
+  </table>
+</section>
+
+<section class="chapter">
+  <h2 class="chapter"><span class="num">3</span>Use it every day</h2>
+  <p class="lead">You do not need to learn anything new. Ask Claude Code for the work in your own words; the skill loads by itself. These commands are there when you want a specific mode.</p>
+  <table>
+    <tr><th style="width:36%">When</th><th style="width:34%">Type</th><th>You get</th></tr>
+    <tr><td>You just cloned a project</td><td><code>/safe-ai-coding:safe-ai-coding scan</code></td><td>A list of anything that could trick or attack the agent</td></tr>
+    <tr><td>You want a feature or a fix</td><td>Just ask, or <code>/safe-ai-coding:safe-ai-coding build &lt;task&gt;</code></td><td>Careful code in your project's style, then an automatic review</td></tr>
+    <tr><td>Before you merge</td><td><code>/safe-ai-coding:safe-ai-coding review main</code></td><td>Findings table and a clear verdict</td></tr>
+    <tr><td>You need a document</td><td>"Give me a PDF report of this work"</td><td>A polished PDF: what was wrong, what was fixed, the proof</td></tr>
+    <tr><td>After installing or updating</td><td><code>/safe-ai-coding:safe-ai-coding self-test</code></td><td>Proof that every check works</td></tr>
+  </table>
+  <h3>What a permission request looks like</h3>
+  <div class="gate"><div class="head">The agent stops and asks</div>
+<pre>PERMISSION NEEDED: install the package "pdf-parse"
+What:          npm install pdf-parse@1.1.1   (this project, branch feature/upload)
+Why:           the upload screen must read text from PDF files
+Possible harm: - the package and its dependencies run install scripts on this machine
+               - a look-alike name could be malware; I checked the exact name on npmjs.com
+Reversible?:   yes: npm uninstall pdf-parse, and revert package.json and the lock file
+Safer option:  use the PDF library already in the project (pdfjs-dist)
+Reply yes to run exactly this, no to skip it, or choose the safer option.</pre></div>
+  <h3>What a review finding looks like</h3>
+<pre>HIGH  app/Http/Controllers/OrderController.php:42  SQL built from request input: SQL injection; use bound parameters
+      &gt; $rows = DB::select("SELECT * FROM orders WHERE id = $request->id");
+WARN  app/Http/Controllers/OrderController.php:58  Billing::refundAll() not found in app/Services/Billing.php: hallucinated or misspelled method</pre>
+</section>
+
+<section class="chapter">
+  <h2 class="chapter"><span class="num">4</span>Questions and answers</h2>
+  <h4>What is the best way to make Claude Code safer?</h4>
+  <p>Install a guardrail skill such as safe-ai-coding, and add permission rules in <code>.claude/settings.json</code> for the commands you never want run without asking. The skill handles judgement; the settings give hard limits.</p>
+  <h4>Does safe-ai-coding stop AI hallucinations in code?</h4>
+  <p>It catches many of them. The review checks that classes, static methods, views, routes, config files and imports used in new code really exist in your repository, and the build steps tell the agent to confirm every symbol before using it.</p>
+  <h4>How does it protect against prompt injection?</h4>
+  <p>It treats everything the agent reads as data, never as orders. It scans instruction files (CLAUDE.md, AGENTS.md, Cursor and Copilot rules), including inside dependencies, for hidden or malicious instructions and invisible unicode, and reports them to you.</p>
+  <h4>Which languages and frameworks does it support?</h4>
+  <p>Any. The checks cover PHP and Laravel, JavaScript and TypeScript, Python, Java, C#, Go and Ruby, and you can add your own project rules.</p>
+  <h4>Does it send my code anywhere?</h4>
+  <p>No. All checks run locally, and it never executes code from the repository it scans.</p>
+  <h4>Is it free?</h4>
+  <p>Yes. It is open source under the MIT license.</p>
+  <h4>Does it replace code review?</h4>
+  <p>No. It makes AI-written code much safer and reviews it carefully, but a person should still approve every change.</p>
+  <h4>Where is the full documentation?</h4>
+  <p>The complete guide (English and Roman Urdu) is in the <code>docs/</code> folder of the repository.</p>
+  <div class="callout ok"><b>About the author</b><p><strong>Sami Hussain</strong> &middot; <a href="https://x8code.com">x8code.com</a> &middot; <a href="mailto:samihussain9t9@gmail.com">samihussain9t9@gmail.com</a><br>Project home, updates and issues: <a href="https://github.com/sami-hussain-dev/safe-ai-coding">github.com/sami-hussain-dev/safe-ai-coding</a> &middot; MIT License</p></div>
+  <p class="endnote">safe-ai-coding 2.0 &middot; Sources: Veracode GenAI Code Security Report (30 Jul 2025); Spracklen et al., USENIX Security 2025, arxiv.org/abs/2406.10279; OWASP LLM01:2025 Prompt Injection. The skill reduces risk; it does not prove code is safe.</p>
+</section>
+
+</main>
+</body>
+</html>

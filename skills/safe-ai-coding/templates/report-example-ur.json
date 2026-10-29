@@ -1,0 +1,151 @@
+{
+  "language": "ur",
+  "title": "Fee discount do baar lag raha tha, aur exam center form har Jamia dikha raha tha",
+  "status": "fixed",
+  "project": "School Board Panel (demo)",
+  "branch": "fix/voucher-discount-jamia-scope",
+  "commit": "4f9c2e1",
+  "date": "2026-10-28",
+  "prepared_by": "Claude (AI coding agent)",
+  "requested_by": "Sana Iqbal, QA lead",
+  "summary": "Fee aur exam center wali screens ki testing ke dauran do kharabiyan milin. Dono is branch par theek kar di gayi hain.\n\nVoucher banate waqt sibling discount do baar kat raha tha, is liye staging batch ke 312 voucher PKR 450 kam ke ban rahe the. Naya exam center form nazim ko har Jamia dikhata tha, aur jo bhi Jamia id bheji jaati us ka center save kar deta tha. Ab voucher loop wohi raqam istemal karta hai jo query pehle hi discount kaat kar deti hai, aur form aur us ka save dono role ke hisaab se chalne wale `ModuleHelper::jamiaList()` se guzarte hain.\n\nDono qawaid ke liye naye feature test likhe gaye, aur ek insaan ne sab se kam ikhtiyar wale role se login kar ke yahi jaanch hath se dobara ki.",
+  "problems": [
+    {
+      "id": "P1",
+      "title": "Voucher banate waqt fee discount do baar lag raha tha",
+      "severity": "high",
+      "where": "`app/Http/Controllers/VoucherController.php` mein `VoucherController::generate()`",
+      "symptom": "Jin talaba ka sibling discount tha, un ke voucher sahi raqam se kam ban rahe the. Misaal: fee 5,000 aur 10% discount par 4,500 banna chahiye tha; voucher par 4,050 aaya.",
+      "root_cause": "Fee query pehle hi `net_amount` discount kaat kar deti hai. `voucher_detail` ki rows likhne wala loop phir discount doosri baar kaat deta tha. Dono jagah yeh samjha gaya ke discount doosri jagah nahi lagta, aur kisi test mein discount wala talib-e-ilm shamil nahi tha.",
+      "impact": "Staging batch B-17 ke 1,240 mein se 312 voucher PKR 450 kam the: board taqreeban PKR 140,400 wusool na karta. Baad mein gharon se baqi raqam maangni parti.",
+      "evidence": "Voucher V-2026-00417: fee 5,000, discount 10%, chhapa 4,050.\nUsi talib-e-ilm ke liye query ka nateeja pehle hi `net_amount = 4500` dikha raha tha.",
+      "found_by": "test"
+    },
+    {
+      "id": "P2",
+      "title": "Exam center form nazim ko har Jamia dikhata hai aur kisi bhi Jamia ki id qabool kar leta hai",
+      "severity": "critical",
+      "where": "`ExamCenterController::create()` aur `store()`",
+      "symptom": "Ek nazim, jo sirf apni Jamia sambhalta hai, ne naya exam center form khola to dropdown mein tamam 287 enabled Jamiaat nazar aayin. Doosri Jamia chun kar save karna bhi kaam kar gaya.",
+      "root_cause": "Form ka dropdown `Jamia::where('is_enabled', 1)->get()` se ban raha tha, project ke helper `ModuleHelper::jamiaList()` se nahi, jo superadmin / nazim / staff ki taqseem lagata hai. Save wala action bheji gayi `jamia_id` par bharosa kar leta tha aur use user ki apni list se kabhi nahi milata tha.",
+      "impact": "Koi bhi nazim tamam Jamiaat ke naam parh sakta tha aur un Jamiaat ke exam center bana sakta tha jo us ke paas nahi. Is se Jamiaat ke darmiyan data ki alehdgi toot jaati hai aur umeedwar ghalat center mein bheje ja sakte hain.",
+      "evidence": "Test user `nazim_demo` (Jamia #12) se login kiya: dropdown mein 287 Jamiaat thin. `jamia_id=45` ke saath POST ne HTTP 302 diya aur Jamia #45 ka center ban gaya.",
+      "found_by": "human"
+    }
+  ],
+  "fixes": [
+    {
+      "id": "F1",
+      "title": "Query se aayi discount wali raqam ko waise hi istemal karo",
+      "fixes": ["P1"],
+      "change": "Voucher loop se doosri baar discount wala hisaab hata diya. Ab har `voucher_detail` row query wala `net_amount` hi save karti hai. Ek feature test shamil kiya jis mein ek discount wala aur ek baghair discount wala talib-e-ilm hai.",
+      "why_correct": "Ab discount sirf ek jagah kat-ta hai, yani query mein, aur fee register ki report bhi yahi query parhti hai, is liye voucher aur register aapas mein milte hain. Naya test purane code par fail hota hai (4,050) aur naye code par pass hota hai (4,500).",
+      "files": ["app/Http/Controllers/VoucherController.php", "tests/Feature/VoucherDiscountTest.php"],
+      "before": "foreach ($rows as $row) {\n    // net_amount comes from the query, already discounted\n    $amount = $row->net_amount\n        - ($row->net_amount * $row->discount_pct / 100);\n    VoucherDetail::create([\n        'voucher_id' => $voucher->id,\n        'std_id'     => $row->std_id,\n        'amount'     => $amount,\n    ]);\n}",
+      "after": "foreach ($rows as $row) {\n    // net_amount comes from the query, already discounted\n    VoucherDetail::create([\n        'voucher_id' => $voucher->id,\n        'std_id'     => $row->std_id,\n        'amount'     => $row->net_amount,\n    ]);\n}",
+      "code_language": "php"
+    },
+    {
+      "id": "F2",
+      "title": "Jamia dropdown role ke hisaab se chalne wale helper se banao",
+      "fixes": ["P2"],
+      "change": "`create()` ab `ModuleHelper::jamiaList()` call karta hai, wohi helper jo project ke baqi forms pehle se istemal karte hain.",
+      "why_correct": "Helper teen tarah ki role taqseem lagata hai (superadmin sab dekhta hai, nazim sirf apni Jamia, staff sirf woh Jamiaat jo us se mapped hain), is liye form qaida dobara likhne ke bajaye project ka qaida hi follow karta hai.",
+      "files": ["app/Http/Controllers/ExamCenterController.php"],
+      "before": "public function create()\n{\n    $jamias = Jamia::where('is_enabled', 1)->get();\n\n    return view('exam_center.add', compact('jamias'));\n}",
+      "after": "public function create()\n{\n    $jamias = ModuleHelper::jamiaList();\n\n    return view('exam_center.add', compact('jamias'));\n}",
+      "code_language": "php"
+    },
+    {
+      "id": "F3",
+      "title": "Jo Jamia id user istemal nahi kar sakta, use rad karo",
+      "fixes": ["P2"],
+      "change": "`store()` ab `jamia_id` ko `ModuleHelper::jamiaList()` ki ids se validate karta hai. Jaali id ab aam error message ke saath validation mein fail hoti hai.",
+      "why_correct": "Dropdown mein option chhupana security check nahi hai: server ko jo value milti hai use khud jaanchna hota hai. Validation kisi bhi write se pehle chalti hai, is liye jaali id par kuch save nahi hota.",
+      "files": ["app/Http/Controllers/ExamCenterController.php", "tests/Feature/ExamCenterScopeTest.php"],
+      "before": "$request->validate([\n    'jamia_id' => 'required|integer',\n    'title'    => 'required|string|max:150',\n]);",
+      "after": "$allowed = ModuleHelper::jamiaList()->pluck('id')->all();\n\n$request->validate([\n    'jamia_id' => ['required', 'integer', Rule::in($allowed)],\n    'title'    => 'required|string|max:150',\n]);",
+      "code_language": "php"
+    }
+  ],
+  "verification": [
+    {
+      "check": "Feature test: discount wale talib-e-ilm ka voucher 4,500 hai",
+      "perspective": "ai",
+      "result": "pass",
+      "detail": "`php artisan test --filter=VoucherDiscountTest`: 2 test, 6 assertions, local SQLite test database par."
+    },
+    {
+      "check": "Batch B-17 local copy par dobara banaya aur fee register se milaya",
+      "perspective": "both",
+      "result": "pass",
+      "detail": "312 voucher badle, har ek +450. Batch ka total ab register se milta hai."
+    },
+    {
+      "check": "`nazim_demo` se login kar ke exam center form khola",
+      "perspective": "human",
+      "result": "pass",
+      "detail": "Dropdown mein sirf Jamia #12 nazar aati hai."
+    },
+    {
+      "check": "Doosri Jamia ki id ke saath jaali POST",
+      "perspective": "human",
+      "result": "pass",
+      "detail": "`jamia_id=45` validation error ke saath rad hoti hai; koi row nahi banti."
+    },
+    {
+      "check": "Superadmin aur staff user ab bhi apni poori list dekhte hain",
+      "perspective": "both",
+      "result": "pass",
+      "detail": "Superadmin ko 287 Jamiaat nazar aati hain; 3 Jamiaat se mapped staff user ko wohi 3."
+    },
+    {
+      "check": "Baqi forms jo Jamia ka dropdown banate hain",
+      "perspective": "human",
+      "result": "partial",
+      "detail": "19 mein se 14 forms jaanche gaye aur theek hain. 5 ab bhi Jamia seedha query karte hain (baqi khatre dekhein)."
+    },
+    {
+      "check": "Do voucher generation ek hi waqt mein",
+      "perspective": "ai",
+      "result": "not-run",
+      "detail": "Local setup par queue worker nahi hai. Baqi khatron mein likha hai."
+    }
+  ],
+  "scans": {
+    "before": { "high": 1, "warn": 4, "info": 3 },
+    "after": { "high": 0, "warn": 1, "info": 2 },
+    "note": "`diff-check.sh origin/master` se pattern scan. Fix se pehle HIGH finding baghair scope wali Jamia query thi. Jo ek WARN bacha hai woh shared table ka qaida hai jo voucher par laagu nahi hota; ek insaan ne use dekh kar qabool kiya."
+  },
+  "approvals": [
+    {
+      "action": "Feature tests chalana, jo test database ko reset karte hain",
+      "harm": "RefreshDatabase us database ko mita deta hai jis ki taraf tests ishara karte hain. Pehle `.env.testing` dekha: woh local SQLite file ki taraf hai, kisi shared server ki taraf nahi.",
+      "decision": "approved",
+      "when": "2026-10-28 11:20"
+    },
+    {
+      "action": "Shared staging server par voucher batch B-17 dobara banana. User ne mehfooz rasta chuna: local copy.",
+      "harm": "Doosre testers ke istemal wale 1,240 voucher badal jaate, aur backup ke baghair yeh wapas nahi ho sakta.",
+      "decision": "safer-option",
+      "when": "2026-10-28 12:05"
+    }
+  ],
+  "files_changed": [
+    { "path": "app/Http/Controllers/VoucherController.php", "added": 1, "removed": 3 },
+    { "path": "app/Http/Controllers/ExamCenterController.php", "added": 4, "removed": 2 },
+    { "path": "tests/Feature/VoucherDiscountTest.php", "added": 64, "removed": 0 },
+    { "path": "tests/Feature/ExamCenterScopeTest.php", "added": 88, "removed": 0 }
+  ],
+  "remaining_risks": [
+    "Paanch aur forms ab bhi Jamia seedha query karte hain. Woh is kaam ka hissa nahi the aur abhi theek nahi hue.",
+    "Fix se pehle chhape gaye batch B-17 ke voucher ghalat raqam ke hain; inhein dobara jaari karna hoga.",
+    "Do voucher generation ek hi waqt mein chalne ki testing nahi hui."
+  ],
+  "next_steps": [
+    "Finance manzoori de, phir batch B-17 ke 312 mutasira voucher dobara jaari kiye jaayein.",
+    "Baqi paanch forms ko `ModuleHelper::jamiaList()` par le aayein, har ek ki alag chhoti tabdeeli.",
+    "`.claude/safe-code-rules.tsv` mein project ka qaida shamil karein taake har nayi tabdeeli mein seedhi Jamia query pakdi jaaye.",
+    "Merge se pehle doosra developer diff parhe."
+  ]
+}

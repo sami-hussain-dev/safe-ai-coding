@@ -1,0 +1,9 @@
+{
+  "name": "safe-ai-coding",
+  "description": "Guardrails for AI coding agents: asks before risky actions and explains the harm, catches hallucinated code, injection, leaked secrets and destructive changes, reviews every change through an AI lens and a human lens, and writes a PDF report on request.",
+  "author": { "name": "Sami Hussain", "email": "samihussain9t9@gmail.com", "url": "https://x8code.com" },
+  "homepage": "https://github.com/sami-hussain-dev/safe-ai-coding",
+  "repository": "https://github.com/sami-hussain-dev/safe-ai-coding",
+  "license": "MIT",
+  "keywords": ["security", "code-review", "guardrails", "ai-safety", "prompt-injection", "hallucination", "secure-coding", "supply-chain", "claude-code-skill"]
+}

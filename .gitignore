@@ -1,0 +1,4 @@
+# Generated locally, never committed
+*.tmp
+.DS_Store
+Thumbs.db

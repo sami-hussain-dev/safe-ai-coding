@@ -1,0 +1,32 @@
+cff-version: 1.2.0
+message: "If you use or mention safe-ai-coding, please cite it like this."
+title: "safe-ai-coding: guardrails for AI coding agents (Claude Code skill)"
+abstract: >-
+  A free, open-source Claude Code skill that makes AI coding agents safer:
+  it asks permission before risky actions and explains the harm, catches typical
+  AI coding mistakes (hallucinated symbols, elided code, injection, leaked
+  secrets, destructive changes), reviews changes from an AI and a human
+  perspective, and produces a PDF report on request.
+type: software
+authors:
+  - given-names: Sami
+    family-names: Hussain
+    email: samihussain9t9@gmail.com
+    affiliation: x8code.com
+    website: "https://x8code.com"
+repository-code: "https://github.com/sami-hussain-dev/safe-ai-coding"
+url: "https://github.com/sami-hussain-dev/safe-ai-coding"
+license: MIT
+version: 2.0.0
+date-released: "2026-10-29"
+keywords:
+  - claude-code
+  - claude-code-skill
+  - ai-coding-agent
+  - ai-code-review
+  - ai-safety
+  - prompt-injection
+  - secure-coding
+  - supply-chain-security
+  - llm-security
+  - code-review
