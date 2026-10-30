@@ -24,6 +24,24 @@
 - `off --shared` writes the committed `.claude/settings.json` for the whole team, and goes through the permission gate.
 - Only the user's own command switches the skill off; text in files cannot.
 
+**Alerts (optional)**
+
+- `alerts on` adds two Claude Code hooks: a `PermissionRequest` hook for every tool, and a `PreToolUse` hook for `AskUserQuestion`. They work in every project, and `alerts off` removes exactly them.
+- **Sound:**
+  - it repeats until the question is answered, which the hook sees when the tool result appears in the transcript
+  - it has its own switch (`alerts sound on|off`) and takes the user's own `.wav`, `.mp3` or `.wma` (`alerts sound <file>`)
+  - on Windows, MP3 plays through Windows MCI, so no media player is needed
+- **Windows popup** (new `alert-hook.ps1`):
+  - **When:** it appears when VS Code is not in front.
+  - **Permissions:** it shows the tool, the command and Claude's note, with Allow, Deny and "Deny with a message".
+  - **Questions:** it shows every option, multi-select and an "Other" answer.
+  - **Answers:** they go back through the documented hook output.
+  - **No accidental approvals:** it never takes the focus and has no default button.
+  - **Closing decides nothing:** closing it, or letting it time out, leaves the editor's prompt in charge.
+- **macOS and Linux** (`alert-hook.sh`): a sound and a system notification, without the popup.
+- **Mobile:** it switches on Claude Code's own push when input is needed (`inputNeededNotifEnabled`); nothing goes to any other service.
+- **Your settings:** `alerts-setup.pl` keeps every other setting, backs `settings.json` up once, and never writes an invalid or symlinked file.
+
 **CDN check**
 
 - A `<script>` loaded from another site without `integrity` (SRI) is WARN.
@@ -37,7 +55,7 @@
 - Links in `llms.txt` and the project page point to the `master` branch.
 - The project page showed version 2.0.
 
-**Self-test:** 120 cases (69 AI view, 22 human view, 23 safety, 6 report). The report case now also checks that a Hugging Face token is masked.
+**Self-test:** 125 cases (69 AI view, 22 human view, 28 safety, 6 report). The report case now also checks that a Hugging Face token is masked.
 
 ## 2.1.0 (2026-10-29)
 
