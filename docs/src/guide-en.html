@@ -179,7 +179,7 @@ git clone --depth 1 https://github.com/sami-hussain-dev/safe-ai-coding.git "$HOM
 Copy-Item -Recurse "$HOME\safe-ai-coding\skills\safe-ai-coding" "$HOME\.claude\skills\"</pre>
       Pick one option, not both.</li>
     <li><b>Start a new session</b>Restart Claude Code or type <code>/reload-plugins</code>. The skill loads by itself; to call it directly, type <code>/safe-ai-coding:safe-ai-coding</code>.</li>
-    <li><b>Verify</b>Type <code>/safe-ai-coding:safe-ai-coding self-test</code> in Claude Code (115 cases should pass). With the git option you can also check the files:
+    <li><b>Verify</b>Type <code>/safe-ai-coding:safe-ai-coding self-test</code> in Claude Code (120 cases should pass). With the git option you can also check the files:
 <pre>bash ~/.claude/skills/safe-ai-coding/scripts/checksums.sh</pre></li>
     <li><b>Update and remove</b>Plugin: <code>/plugin</code> &rarr; Marketplaces &rarr; safe-ai-coding &rarr; Update; remove with <code>/plugin uninstall safe-ai-coding@safe-ai-coding</code>. Git: <code>git -C ~/safe-ai-coding pull</code>, then the copy command again; remove by deleting <code>~/.claude/skills/safe-ai-coding</code>. With the git copy the command is <code>/safe-ai-coding</code>.</li>
   </ol>
@@ -197,6 +197,9 @@ Copy-Item -Recurse "$HOME\safe-ai-coding\skills\safe-ai-coding" "$HOME\.claude\s
     <tr><td>Your own uncommitted changes</td><td><code>/safe-ai-coding:safe-ai-coding review HEAD</code></td><td>The same, for the working tree only</td></tr>
     <tr><td>You need a document of what happened</td><td>"Make a report of this work", "Give me a PDF of what you fixed"</td><td>A polished PDF of problems, fixes and evidence (Chapter 10)</td></tr>
     <tr><td>You changed or received the skill</td><td><code>/safe-ai-coding:safe-ai-coding self-test</code></td><td>PASS / FAIL for every check</td></tr>
+    <tr><td>You want a question before every step</td><td><code>/safe-ai-coding:safe-ai-coding mode strict</code></td><td>The agent asks before every command and file change (Chapter 9)</td></tr>
+    <tr><td>Back to the default</td><td><code>/safe-ai-coding:safe-ai-coding mode balanced</code></td><td>The agent asks only before actions that can cause harm</td></tr>
+    <tr><td>You do not want the skill in one project</td><td><code>/safe-ai-coding:safe-ai-coding off</code></td><td>The skill stops loading in this project only; <code>on</code> brings it back, <code>status</code> shows it (Chapter 15)</td></tr>
   </table>
   <h3>A worked example</h3>
   <ol class="steps">
@@ -224,6 +227,7 @@ Copy-Item -Recurse "$HOME\safe-ai-coding\skills\safe-ai-coding" "$HOME\.claude\s
     <tr><td>7</td><td>Symlinks leaving the repository</td><td>Links whose target is outside the project, for example a key in your home folder</td></tr>
     <tr><td>8</td><td>Hidden unicode</td><td>Bidi controls, tag characters and zero-width characters that make text look different from what it is</td></tr>
     <tr><td>9</td><td>Executables</td><td>Binaries, scripts and files with the executable bit</td></tr>
+    <tr><td>10</td><td>Secrets and open data already committed</td><td>Committed <code>.env</code> files, real-looking keys (printed masked), Firebase rules open to everyone, secrets in public build variables</td></tr>
   </table>
   <h3>Reading the result</h3>
   <ul>
@@ -283,6 +287,7 @@ Copy-Item -Recurse "$HOME\safe-ai-coding\skills\safe-ai-coding" "$HOME\.claude\s
     <div class="card"><h4>Supply chain and agent config</h4><ul>
       <li>install hooks, unpinned or URL dependencies</li>
       <li>custom registries, insecure package sources</li>
+      <li>CDN scripts and stylesheets without integrity (SRI)</li>
       <li>CI changes, agent instruction or settings files</li>
       <li>symlinks out of the repository</li>
       <li>prompt-injection text, hidden unicode</li>
@@ -320,11 +325,21 @@ WARN  .claude/safe-code-rules.tsv  [project rule] routes changed but no permissi
 <section class="chapter">
   <h2 class="chapter"><span class="num">9</span>The permission gate</h2>
   <p class="lead">Before any risky action, the agent stops and asks. The request explains the possible damage first, so you decide with the facts in front of you.</p>
+  <h3>Two gate modes</h3>
+  <table>
+    <tr><th style="width:22%">Mode</th><th style="width:40%">Asks before</th><th>Goes ahead without asking</th></tr>
+    <tr><td><code>balanced</code> (default)</td><td>Only the actions in the table below, the ones that can cause harm</td><td>Everything else: reading, searching, ordinary code edits inside the task, syntax checks, local tests</td></tr>
+    <tr><td><code>strict</code></td><td>Every command and every file change, plus the table below</td><td>Only reading and searching, and <code>git status/diff/log/show</code></td></tr>
+  </table>
+  <p>Switch in the session with "strict mode" or <code>/safe-ai-coding:safe-ai-coding mode strict</code>, and back with <code>mode balanced</code>. To make <code>strict</code> the default for one repository, add the line <code>Gate mode: strict</code> to its <code>.claude/safe-code-conventions.md</code>. Text anywhere else cannot change the mode, and neither mode switches the table below off.</p>
+  <h3>What always needs a yes</h3>
   <table>
     <tr><th style="width:38%">Needs your explicit yes</th><th>Because</th></tr>
     <tr><td>Using an external or untrusted file: running, importing, copying in, or following it</td><td>Hidden instructions, malware, licence problems</td></tr>
     <tr><td>Running a script or binary that is not part of the reviewed project (<code>npx</code>, <code>curl | sh</code>, installers)</td><td>It runs with your full rights</td></tr>
     <tr><td>Installing, updating or removing dependencies</td><td>Look-alike names, install scripts, conflicts</td></tr>
+    <tr><td>Adding third-party code to the product: a CDN script or stylesheet, web fonts, widgets, tracking snippets, outside SDKs</td><td>Their code runs for every user; one compromised host hits everyone; visitor data goes to the vendor</td></tr>
+    <tr><td>Writing code that can open a hole or leak data: new outbound data flows, endpoints without login, exports of personal data, uploads, login, permission, session, token or encryption changes</td><td>The hole or leak ships with the code</td></tr>
     <tr><td>Sending anything out of the machine</td><td>Code, secrets or personal data cannot be recalled</td></tr>
     <tr><td>Reading or printing secrets or personal data</td><td>They end up in transcripts, logs or reports</td></tr>
     <tr><td>Any database write, or any non-local database</td><td>Data loss, outages; tests that reset a database wipe it</td></tr>
@@ -350,7 +365,7 @@ Reply yes to run exactly this, no to skip it, or choose the safer option.</pre><
     <li>Unknown harm is stated as a harm: "I have not verified what this does."</li>
     <li>Every request and your answer are listed in the final report.</li>
   </ul>
-  <div class="callout ok"><b>No permission needed (so the gate stays meaningful)</b><p>Reading and searching the project, <code>git status/diff/log/show</code>, the skill's own scripts (including rendering a report you asked for), syntax checks, tests that touch no shared database, edits inside the task's scope, and reading non-secret settings such as the database host and name.</p></div>
+  <div class="callout ok"><b>No permission needed in balanced mode (so the gate stays meaningful)</b><p>Reading and searching the project, <code>git status/diff/log/show</code>, the skill's own scripts (including rendering a report you asked for), syntax checks, tests that touch no shared database, edits inside the task's scope, and reading non-secret settings such as the database host and name.</p></div>
 </section>
 
 <section class="chapter">
@@ -426,12 +441,12 @@ CHANGE:WARN ^database/migrations/   .   schema changed but claude_docs/db.md was
   <h2 class="chapter"><span class="num">13</span>Tested from both sides</h2>
   <p class="lead">The skill was tested from the AI's side (does it catch what AI gets wrong and what attackers try?) and the human side (does it stay quiet on good code, and is it usable?).</p>
     <div class="grid3">
-    <div class="tile teal"><span class="big">115 / 115</span><span class="what">self-test cases pass: 68 AI view, 21 human view, 20 safety, 6 report</span></div>
+    <div class="tile teal"><span class="big">120 / 120</span><span class="what">self-test cases pass: 69 AI view, 22 human view, 23 safety, 6 report</span></div>
     <div class="tile"><span class="big">40</span><span class="what">real, human-written commits of a production Laravel codebase scanned for false alarms</span></div>
     <div class="tile red"><span class="big">0</span><span class="what">commands executed from malicious git config, hooks or symlinks in the attack repositories</span></div>
   </div>
   <h3>AI view: does it catch what goes wrong?</h3>
-  <p>68 cases, each a typical AI mistake or attack, must be caught with the right severity:</p>
+  <p>69 cases, each a typical AI mistake or attack, must be caught with the right severity:</p>
   <ul>
     <li>SQL, command and path injection, SSRF, eval</li>
     <li>keys, private keys and <code>.env</code> files</li>
@@ -446,7 +461,7 @@ CHANGE:WARN ^database/migrations/   .   schema changed but claude_docs/db.md was
   </ul>
   <p>All 68 are caught.</p>
   <h3>Human view: does it stay quiet on good code?</h3>
-  <p>21 cases of correct, everyday code must raise no HIGH or WARN:</p>
+  <p>22 cases of correct, everyday code must raise no HIGH or WARN:</p>
   <ul>
     <li>bound queries and validation rules named <code>password</code></li>
     <li>"Loading..." and friendly UI text, <code>placeholder</code> attributes</li>
@@ -476,7 +491,7 @@ CHANGE:WARN ^database/migrations/   .   schema changed but claude_docs/db.md was
     <li>an insecure <code>.npmrc</code> and a lock file pointing at another host</li>
     <li>symlinks leaving the repository</li>
   </ul>
-  <p>Every item was reported, no marker file was created, and no control character reached the output.</p>
+  <p>Every item was reported, no marker file was created, and no control character reached the output. The commit guard blocked a commit with a key in it, and the per-project switch kept every other setting and refused to overwrite a settings file that was not valid JSON.</p>
   <h3>Report</h3>
   <p>The renderer was given hostile input: script tags, an image with an <code>onerror</code> handler, an AWS-style key, an ID number and a password. All of it was escaped or masked. The page contains no scripts or remote resources, and both language versions print to PDF.</p>
   <div class="callout"><b>Problems found by testing, and fixed</b>
@@ -516,7 +531,8 @@ CHANGE:WARN ^database/migrations/   .   schema changed but claude_docs/db.md was
     <tr><td>Too many findings</td><td>Fix the HIGH ones first. Use <code>--all</code> to see everything, and add project rules or conventions so the agent avoids the pattern next time.</td></tr>
     <tr><td>No PDF, only HTML</td><td>No supported browser or wkhtmltopdf was found, or the one found failed. Open the HTML in any browser and use Print, then Save as PDF. Or set <code>SAFE_AI_PDF_BROWSER</code> to your browser's path.</td></tr>
     <tr><td>Python syntax checks are skipped on Windows</td><td>The <code>python</code> command may be the Microsoft Store placeholder. Install Python, or ignore it; other checks still run.</td></tr>
-    <tr><td>Too many permission questions</td><td>Read-only work never asks. If it does, say so; the "no permission needed" list in <code>SKILL.md</code> is the rule.</td></tr>
+    <tr><td>Too many permission questions</td><td>Check the mode: <code>strict</code> asks before every step. Say "balanced mode" to go back to the default, which asks only before harmful actions. Read-only work never asks.</td></tr>
+    <tr><td>How do I switch it off in one project only?</td><td>In that project, type <code>/safe-ai-coding off</code> (plugin: <code>/safe-ai-coding:safe-ai-coding off</code>). It writes Claude Code's own setting into <code>.claude/settings.local.json</code>, which is personal and not committed, and keeps every other setting. Git copy: <code>/safe-ai-coding on</code> brings it back. Plugin: <code>/plugin</code>, or <code>claude plugin enable safe-ai-coding@safe-ai-coding --scope local</code>. For the whole team use <code>off --shared</code>; the agent asks first. It takes effect in the next session.</td></tr>
     <tr><td>Can I use it with other AI tools?</td><td>The scripts work anywhere with bash. The instructions in <code>SKILL.md</code> are written for Claude Code, but any agent can be pointed at them.</td></tr>
     <tr><td>Does it send my code anywhere?</td><td>No. Everything runs locally. The report page itself loads nothing from the network.</td></tr>
   </table>

@@ -22,7 +22,7 @@
       "name": "safe-ai-coding",
       "applicationCategory": "DeveloperApplication",
       "operatingSystem": "Windows, macOS, Linux",
-      "softwareVersion": "2.0.0",
+      "softwareVersion": "2.1.0",
       "license": "https://opensource.org/licenses/MIT",
       "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "description": "A Claude Code skill that makes AI coding agents safer: permission requests that explain harm, detection of hallucinated symbols, elided code, injection and leaked secrets, two-lens code review and on-request PDF reports.",
@@ -71,7 +71,7 @@ a { color:var(--indigo); }
   <h1>safe-ai-coding <span>for Claude Code</span></h1>
   <p>A free, open-source skill that makes AI coding agents safe: it asks before anything risky and explains the harm, catches the mistakes AI makes, and reviews every change like a careful teammate.</p>
   <a class="btn" href="https://github.com/sami-hussain-dev/safe-ai-coding">Get it on GitHub</a>
-  <a class="btn alt" href="https://github.com/sami-hussain-dev/safe-ai-coding/blob/main/docs/safe-ai-coding-quick-start.pdf">Quick start guide (PDF)</a>
+  <a class="btn alt" href="https://github.com/sami-hussain-dev/safe-ai-coding/blob/master/docs/safe-ai-coding-quick-start.pdf">Quick start guide (PDF)</a>
 </div></header>
 
 <section><div class="wrap">
@@ -100,7 +100,7 @@ Copy-Item -Recurse "$HOME\safe-ai-coding\skills\safe-ai-coding" "$HOME\.claude\s
 <section><div class="wrap">
   <h2>What it does</h2>
   <div class="grid">
-    <div class="card"><h3>Asks before harm</h3><p>Installs, database writes, deleting files, git pushes, secrets, data leaving the machine: the agent explains the possible damage, whether it can be undone and a safer option, then waits for your yes.</p></div>
+    <div class="card"><h3>Asks before harm</h3><p>Installs, CDN scripts, database writes, deleting files, git pushes, secrets, data leaving the machine: the agent explains the possible damage, whether it can be undone and a safer option, then waits for your yes. Everything else just runs, unless you choose strict mode.</p></div>
     <div class="card"><h3>Catches AI mistakes</h3><p>Hallucinated classes, methods, routes, views and imports; "rest of the code unchanged" placeholders; SQL and command injection; leaked keys; destructive migrations; weakened tests.</p></div>
     <div class="card"><h3>Protects the agent</h3><p>Scans repositories for prompt-injection text in CLAUDE.md, AGENTS.md and rules files (also in dependencies), malicious git config and hooks, install scripts and hidden unicode.</p></div>
     <div class="card"><h3>Reviews and reports</h3><p>Every change is reviewed through an AI lens and a human lens. On request, a polished PDF report shows what was wrong, what was fixed and the evidence.</p></div>
@@ -116,6 +116,6 @@ Copy-Item -Recurse "$HOME\safe-ai-coding\skills\safe-ai-coding" "$HOME\.claude\s
   <h3>Is it free?</h3><p>Yes, MIT licensed.</p>
 </div></section>
 
-<footer><div class="wrap">safe-ai-coding 2.0 &middot; Created by <strong>Sami Hussain</strong> &middot; <a href="https://x8code.com">x8code.com</a> &middot; <a href="mailto:samihussain9t9@gmail.com">samihussain9t9@gmail.com</a> &middot; MIT License</div></footer>
+<footer><div class="wrap">safe-ai-coding 2.1 &middot; Created by <strong>Sami Hussain</strong> &middot; <a href="https://x8code.com">x8code.com</a> &middot; <a href="mailto:samihussain9t9@gmail.com">samihussain9t9@gmail.com</a> &middot; MIT License</div></footer>
 </body>
 </html>

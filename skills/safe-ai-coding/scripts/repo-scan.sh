@@ -294,7 +294,7 @@ else
 fi
 grep -E '(^|/)\.env(\.[^/]*)?$' "$TMP/tracked" | grep -vE '\.(example|sample|dist|template|defaults?)$' > "$TMP/envs"
 if [ -s "$TMP/envs" ]; then hits=1; flag "environment files are committed (they usually hold passwords and keys; rotate them, then remove them from git):"; show < "$TMP/envs"; fi
-SECRET_RE='AKIA[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9]{36,}|github_pat_[A-Za-z0-9_]{40,}|glpat-[A-Za-z0-9_-]{20,}|xox[abprs]-[A-Za-z0-9-]{10,}|AIza[0-9A-Za-z_-]{35}|(sk|rk)_live_[0-9A-Za-z]{16,}|sk-(proj|ant|or-v1)-[A-Za-z0-9_-]{30,}|(hf|gsk|r8)_[A-Za-z0-9]{30,}|-----BEGIN [A-Z ]*PRIVATE KEY-----'
+SECRET_RE='AKIA[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9]{36,}|github_pat_[A-Za-z0-9_]{40,}|glpat-[A-Za-z0-9_-]{20,}|xox[abprs]-[A-Za-z0-9-]{10,}|AIza[0-9A-Za-z_-]{35}|(sk|rk)_live_[0-9A-Za-z]{16,}|sk-(proj|ant|or-v1)-[A-Za-z0-9_-]{30,}|sk-[A-Za-z0-9]{48}|(hf|gsk|r8)_[A-Za-z0-9]{30,}|xai-[A-Za-z0-9]{30,}|SG\.[A-Za-z0-9_-]{16,}\.[A-Za-z0-9_-]{16,}|sq0csp-[A-Za-z0-9_-]{30,}|shpat_[a-f0-9]{32}|-----BEGIN [A-Z ]*PRIVATE KEY-----'
 while IFS= read -r f; do
   isself "$f" && continue
   [ -f "$f" ] && [ ! -L "$f" ] && printf '%s\0' "$f"

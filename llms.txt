@@ -5,6 +5,8 @@
 ## What it does
 
 - Asks before risky actions (installs, database writes, destructive git or file commands, secrets, data leaving the machine, agent config changes) and explains the harm, whether it can be undone, and a safer option.
+- Two gate modes: balanced (the default) asks only before actions that can cause harm, including third-party code such as CDN scripts and code that could open a security hole or leak data; strict asks before every command and file change.
+- Can be switched off for a single project with /safe-ai-coding off (on brings it back); every other project keeps it.
 - Catches AI coding mistakes: invented (hallucinated) classes, methods, routes, views and imports; elided code such as "rest of the code unchanged"; pasted chat text; SQL, command and path injection; leaked secrets; destructive migrations; weakened tests.
 - Scans a repository before an agent works in it: prompt-injection text in instruction files (CLAUDE.md, AGENTS.md, Cursor and Copilot rules, also inside dependencies), malicious git config and hooks, install hooks, package sources, symlinks to private keys, hidden unicode.
 - Reviews each change through an AI lens and a human lens and gives a clear verdict.
@@ -20,11 +22,11 @@ cp -r ~/safe-ai-coding/skills/safe-ai-coding ~/.claude/skills/
 
 ## Key files
 
-- [README](https://github.com/sami-hussain-dev/safe-ai-coding/blob/main/README.md): install, usage, FAQ
-- [SKILL.md](https://github.com/sami-hussain-dev/safe-ai-coding/blob/main/skills/safe-ai-coding/SKILL.md): the rules the agent follows
-- [Quick start guide (PDF)](https://github.com/sami-hussain-dev/safe-ai-coding/blob/main/docs/safe-ai-coding-quick-start.pdf)
-- [Complete guide, English (PDF)](https://github.com/sami-hussain-dev/safe-ai-coding/blob/main/docs/safe-ai-coding-complete-guide.pdf)
-- [Complete guide, Roman Urdu (PDF)](https://github.com/sami-hussain-dev/safe-ai-coding/blob/main/docs/safe-ai-coding-complete-guide-roman-urdu.pdf)
+- [README](https://github.com/sami-hussain-dev/safe-ai-coding/blob/master/README.md): install, usage, FAQ
+- [SKILL.md](https://github.com/sami-hussain-dev/safe-ai-coding/blob/master/skills/safe-ai-coding/SKILL.md): the rules the agent follows
+- [Quick start guide (PDF)](https://github.com/sami-hussain-dev/safe-ai-coding/blob/master/docs/safe-ai-coding-quick-start.pdf)
+- [Complete guide, English (PDF)](https://github.com/sami-hussain-dev/safe-ai-coding/blob/master/docs/safe-ai-coding-complete-guide.pdf)
+- [Complete guide, Roman Urdu (PDF)](https://github.com/sami-hussain-dev/safe-ai-coding/blob/master/docs/safe-ai-coding-complete-guide-roman-urdu.pdf)
 
 ## Author
 

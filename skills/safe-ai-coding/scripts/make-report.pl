@@ -48,8 +48,10 @@
 # characters) is shown as <U+XXXX>. Before that, every string is masked:
 #   - PEM private key blocks: the key body becomes ****
 #   - AWS key ids (AKIA/ASIA + 16), GitHub tokens (ghp_ gho_ ghu_ ghs_ ghr_
-#     github_pat_), Slack xox?- tokens, Google AIza keys, sk- / sk_live_ / sk_test_
-#     keys, JWTs and Bearer/Basic credentials: the prefix stays, then ****
+#     github_pat_), GitLab glpat-, Slack xox?- tokens, Google AIza keys, sk- /
+#     sk_live_ / sk_test_ keys, Hugging Face hf_, Groq gsk_, Replicate r8_, xAI
+#     xai-, SendGrid SG., Square sq0csp-, Shopify shpat_, JWTs and Bearer/Basic
+#     credentials: the prefix stays, then ****
 #   - passwords in URLs (scheme://user:****@host) and secret URL parameters
 #     (?token=, &api_key=, &signature=, ...)
 #   - values given to a name containing password, passwd, passphrase, secret,
@@ -410,6 +412,8 @@ sub mask {
     $s =~ s{(?<![A-Za-z0-9])(AKIA|ASIA)[A-Z0-9]{16,}}{$1****}g;
     $s =~ s{(?<![A-Za-z0-9_])(gh[pousr]_)[A-Za-z0-9]{20,}}{$1****}g;
     $s =~ s{(?<![A-Za-z0-9_])(github_pat_)[A-Za-z0-9_]{20,}}{$1****}g;
+    $s =~ s{(?<![A-Za-z0-9_-])(glpat-|hf_|gsk_|r8_|xai-|sq0csp-|shpat_)[A-Za-z0-9_-]{16,}}{$1****}g;
+    $s =~ s{(?<![A-Za-z0-9_-])(SG\.)[A-Za-z0-9_-]{16,}\.[A-Za-z0-9_-]{16,}}{$1****}g;
     $s =~ s{(?<![A-Za-z0-9])(xox[A-Za-z0-9]-)[A-Za-z0-9-]{8,}}{$1****}g;
     $s =~ s{(?<![A-Za-z0-9_-])(AIza)[0-9A-Za-z_-]{30,}}{$1****}g;
     $s =~ s{(?<![A-Za-z0-9_])((?:sk|rk)_(?:live|test)_)[0-9A-Za-z]{8,}}{$1****}g;

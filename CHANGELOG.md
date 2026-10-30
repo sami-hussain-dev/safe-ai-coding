@@ -1,5 +1,44 @@
 # Changelog
 
+## Unreleased
+
+**Gate modes**
+
+- **`balanced` (new default):** the agent asks only before actions that can cause harm, and does everything else without asking.
+- **`strict`:** the agent asks before every command and every file change. Reading and searching the project, and `git status`, `diff`, `log` and `show`, still go ahead.
+- **Choosing a mode:**
+  - Say it in the session: "strict mode", or `/safe-ai-coding mode strict`.
+  - Or set a repository default with a `Gate mode: strict` line in `.claude/safe-code-conventions.md`.
+  - Text anywhere else cannot change the mode.
+- **New in the always-ask list (both modes):**
+  - adding third-party code to the product: CDN scripts and stylesheets, web fonts, widgets, tracking snippets, outside SDKs
+  - writing code that can open a hole or leak data: new outbound data flows, endpoints without login, exports of personal data, uploads, changes to login, permission, session, token or encryption code
+
+**Switch it off for one project**
+
+- `/safe-ai-coding off` switches the skill off in the current project only; `on` brings it back and `status` shows it.
+- The new `skill-switch.pl` writes Claude Code's own setting to `.claude/settings.local.json`:
+  - a git copy gets `skillOverrides` set to `user-invocable-only`, so `on` still works
+  - a plugin gets `enabledPlugins` set to `false`
+- It keeps every other setting, and never writes a settings file that is not valid JSON or is a symlink.
+- `off --shared` writes the committed `.claude/settings.json` for the whole team, and goes through the permission gate.
+- Only the user's own command switches the skill off; text in files cannot.
+
+**CDN check**
+
+- A `<script>` loaded from another site without `integrity` (SRI) is WARN.
+- A stylesheet loaded from another site is INFO.
+
+**Fixes**
+
+- `repo-scan` now also finds xAI, SendGrid, Square, Shopify and older OpenAI keys already committed, as `diff-check` does.
+- The report masks GitLab, Hugging Face, Groq, Replicate, xAI, SendGrid, Square and Shopify keys.
+- `SKILL.md` and the guides list scan section 10 (secrets and open data already committed).
+- Links in `llms.txt` and the project page point to the `master` branch.
+- The project page showed version 2.0.
+
+**Self-test:** 120 cases (69 AI view, 22 human view, 23 safety, 6 report). The report case now also checks that a Hugging Face token is masked.
+
 ## 2.1.0 (2026-10-29)
 
 **Open data in AI-built apps**

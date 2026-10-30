@@ -453,6 +453,12 @@ function code(f, l, t, lt, k, pa, pl,    req, sqlish, rawapi, interp, net) {
     if (k == "js" && t ~ /[[][ \t]*["']__proto__["'][ \t]*[]]|__proto__[ \t]*=[^=]|constructor[.]prototype[ \t]*=[^=]/)
         out("WARN", f, l, "writes to an object prototype: prototype pollution if keys come from users", t)
 
+    # Third-party code loaded from another site (a tag split over several lines is not checked)
+    if (lt ~ /<script[ \t][^>]*src[ \t]*=[ \t]*["']?(https?:)?\/\/[^>]*>/ && lt !~ /integrity[ \t]*=/)
+        out("WARN", f, l, "script loaded from another site without integrity (SRI): if that host is compromised, its code runs for every user; pin the version and add integrity and crossorigin, or serve a local copy", t)
+    else if (lt ~ /<link[ \t][^>]*stylesheet[^>]*>/ && lt ~ /href[ \t]*=[ \t]*["']?(https?:)?\/\// && lt !~ /integrity[ \t]*=/)
+        out("INFO", f, l, "stylesheet loaded from another site: visitors' IPs go to that host; add integrity where the file never changes, or serve a local copy", t)
+
     # CSRF, authentication, CORS
     if (t ~ /csrf_exempt|csrf[(][)][.]disable[(]|csrf[ \t]*:[ \t]*false|IgnoreAntiforgeryToken|skip_before_action[ \t]+:verify_authenticity_token|protect_from_forgery[ \t]+with:[ \t]*:null_session|withoutMiddleware[(][^)]*([Cc]srf|VerifyCsrfToken)/ ||
         (f ~ /VerifyCsrfToken[.]php$/ && t ~ /["'][^"']+["']/))
