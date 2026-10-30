@@ -10,7 +10,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ![Version](https://img.shields.io/badge/version-2.1.0-indigo)
 ![Claude Code](https://img.shields.io/badge/Claude%20Code-skill%20%2B%20plugin-0f7f74)
-![Self-test](https://img.shields.io/badge/self--test-120%2F120%20passing-success)
+![Self-test](https://img.shields.io/badge/self--test-125%2F125%20passing-success)
 
 Created by **Sami Hussain** · [x8code.com](https://x8code.com) · samihussain9t9@gmail.com
 
@@ -77,7 +77,7 @@ Start a new Claude Code session. Use one option, not both.
 | Plugin | `/safe-ai-coding:safe-ai-coding` |
 | Git copy | `/safe-ai-coding` |
 
-**Check it works:** type `/safe-ai-coding:safe-ai-coding self-test` (plugin) or `/safe-ai-coding self-test` (git copy). You should see `120 passed, 0 failed`. When the skill is in use, Claude Code shows a "Skill(safe-ai-coding)" line.
+**Check it works:** type `/safe-ai-coding:safe-ai-coding self-test` (plugin) or `/safe-ai-coding self-test` (git copy). You should see `125 passed, 0 failed`. When the skill is in use, Claude Code shows a "Skill(safe-ai-coding)" line.
 
 | Task | Plugin | Git |
 | --- | --- | --- |
@@ -107,6 +107,8 @@ Just ask Claude Code for the work in your own words; the skill loads by itself (
 | You do not want the skill in one project | `/safe-ai-coding:safe-ai-coding off` | The skill stops loading in this project only; everywhere else it stays on |
 | You want it back | `/safe-ai-coding on` (git copy), or `/plugin` for the plugin | The skill loads again in this project |
 | You want to know if it is on here | `/safe-ai-coding:safe-ai-coding status` | What this project's settings say |
+| You want to hear Claude's questions and answer them from anywhere | `/safe-ai-coding:safe-ai-coding alerts on` | A repeating sound, a popup to answer from (Windows) and a mobile push |
+| You want your own sound, or silence | `/safe-ai-coding:safe-ai-coding alerts sound <file>` or `alerts sound off` | Only the sound changes; the popup stays |
 
 **Gate modes.** By default the skill runs in `balanced` mode: the agent works without interrupting you and stops only before an action that can cause harm, such as:
 
@@ -129,6 +131,60 @@ Notes:
 - **The whole team:** to switch it off for everyone who works on the repository, ask for `off --shared`. That writes `.claude/settings.json`, which is committed, so the agent asks first.
 - **Without the skill:** the same works by hand. Run `perl ~/.claude/skills/safe-ai-coding/scripts/skill-switch.pl off` inside the project, or use Claude Code's `/skills` menu.
 - **Your other settings stay:** the script keeps every other setting in the file, and it never overwrites a settings file that is not valid JSON.
+
+## Alerts: sound, popup and mobile push (optional)
+
+When Claude Code asks for a permission or asks you a question, it waits. The alerts make sure you notice, even when the editor is hidden behind other windows.
+
+| Command | What it does |
+| --- | --- |
+| `alerts on` | Adds two Claude Code hooks to `~/.claude/settings.json` and switches on Claude Code's mobile push. The agent asks first. They work in every project, whether the skill is on or off there |
+| `alerts off` | Removes exactly those hooks again |
+| `alerts status` | Shows what is installed and your sound settings |
+| `alerts test` | Shows a sample popup (`alerts test question` for a question); nothing is sent to Claude Code |
+| `alerts sound off` / `alerts sound on` | Switches only the sound; the popup and the mobile push stay |
+| `alerts sound C:\path\my-sound.mp3` | Uses your own `.wav`, `.mp3` or `.wma` file |
+| `alerts sound test` | Plays the sound once |
+
+Type each one after `/safe-ai-coding:safe-ai-coding` (plugin) or `/safe-ai-coding` (git copy).
+
+**What you get:**
+
+- **Sound:** it repeats every 5 seconds until you answer, for up to 2 minutes. A long clip finishes before it starts again. On Windows, MP3 plays through Windows itself, with no media player needed.
+- **Popup (Windows):** it appears in the corner of the screen when VS Code is not the window in front.
+  - **For a permission:** it shows the tool, the exact command or file, and Claude's note.
+  - **For a question:** it shows every option, checkboxes for multi-select, and an "Other" box for your own answer.
+  - **Your answer** goes straight back to Claude Code.
+- **Mobile:** Claude Code's own push to the Claude app, while Remote Control (`/rc`) is connected. Nothing goes to any other service.
+
+**Safety:**
+
+- **No accidental approvals:** the popup never takes the keyboard focus and has no default button, so a stray Enter cannot approve anything.
+- **Closing decides nothing:** closing the popup, or letting its time run out, leaves VS Code's own prompt in charge.
+- **macOS and Linux:** they get the sound and a system notification, but no popup.
+
+| Permission | Question |
+| --- | --- |
+| ![Alerts popup for a permission: Allow, Deny, Deny with a message](docs/images/alerts-permission.png) | ![Alerts popup for a question: options, multi-select and an Other answer](docs/images/alerts-question.png) |
+
+**Settings** live in `~/.claude/safe-ai-alerts.json`:
+
+```json
+{
+  "enabled": true,
+  "sound_on": true,
+  "sound": "C:/Users/me/Music/alert.mp3",
+  "repeat_every_seconds": 5,
+  "stop_after_seconds": 120,
+  "popup": "when-away",
+  "popup_timeout_seconds": 300,
+  "focus_apps": ["Code", "Code - Insiders", "Cursor"]
+}
+```
+
+- **`sound`:** an empty value plays the Windows notification sound.
+- **`popup`:** `when-away` (the default), `always` or `never`.
+- **`focus_apps`:** the program names that count as "the editor is in front".
 
 ## Screenshots
 
@@ -190,16 +246,16 @@ WARN  view 'country.missing' not found (expected resources/views/country/missing
 
 **5. Hostile report input.** Script tags, an `onerror` image, an AWS-style key, a password and an ID number were all escaped or masked in the PDF.
 
-**6. The self-test.** It covers 120 cases:
+**6. The self-test.** It covers 125 cases:
 
 | Group | Cases | What they prove |
 | --- | --- | --- |
 | AI view | 69 | Attacks and AI mistakes are caught |
 | Human view | 22 | Good code stays quiet |
-| Safety | 23 | Hostile repositories are harmless, and the project switch never damages a settings file |
+| Safety | 28 | Hostile repositories are harmless, and the project switch and the alerts never damage a settings file |
 | Report | 6 | Reports are escaped, masked and print to PDF |
 
-All 120 pass.
+All 125 pass.
 
 ## Limitations
 

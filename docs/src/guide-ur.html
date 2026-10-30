@@ -195,7 +195,7 @@ git clone --depth 1 https://github.com/sami-hussain-dev/safe-ai-coding.git "$HOM
 Copy-Item -Recurse "$HOME\safe-ai-coding\skills\safe-ai-coding" "$HOME\.claude\skills\"</pre>
       Dono mein se ek hi tareeqa chunein.</li>
     <li><b>Naya session shuru karein</b>Claude Code dobara kholein ya <code>/reload-plugins</code> likhein. Skill khud load hoti hai; seedha chalane ke liye <code>/safe-ai-coding:safe-ai-coding</code>.</li>
-    <li><b>Tasdeeq karein</b>Claude Code mein <code>/safe-ai-coding:safe-ai-coding self-test</code> likhein (120 cases pass hone chahiye). Git wale tareeqe mein files ki tasdeeq:
+    <li><b>Tasdeeq karein</b>Claude Code mein <code>/safe-ai-coding:safe-ai-coding self-test</code> likhein (125 cases pass hone chahiye). Git wale tareeqe mein files ki tasdeeq:
 <pre>bash ~/.claude/skills/safe-ai-coding/scripts/checksums.sh</pre></li>
     <li><b>Update aur hatana</b>Plugin: <code>/plugin</code> &rarr; Marketplaces &rarr; safe-ai-coding &rarr; Update; hatane ke liye <code>/plugin uninstall safe-ai-coding@safe-ai-coding</code>. Git: <code>git -C ~/safe-ai-coding pull</code>, phir copy wali command dobara; hatane ke liye <code>~/.claude/skills/safe-ai-coding</code> delete karein. Git wale tareeqe mein command <code>/safe-ai-coding</code> hai.</li>
   </ol>
@@ -216,6 +216,7 @@ Copy-Item -Recurse "$HOME\safe-ai-coding\skills\safe-ai-coding" "$HOME\.claude\s
     <tr><td>Har qadam se pehle sawal chahiye</td><td><code>/safe-ai-coding:safe-ai-coding mode strict</code></td><td>Agent har command aur har file change se pehle poochta hai (Chapter 9)</td></tr>
     <tr><td>Wapas default par</td><td><code>/safe-ai-coding:safe-ai-coding mode balanced</code></td><td>Agent sirf nuqsan wale kaam se pehle poochta hai</td></tr>
     <tr><td>Kisi ek project mein skill nahi chahiye</td><td><code>/safe-ai-coding:safe-ai-coding off</code></td><td>Sirf is project mein skill load hona band; <code>on</code> se wapas, <code>status</code> se haal maloom (Chapter 15)</td></tr>
+    <tr><td>Claude ke sawal sunne aur kahin se bhi jawab dene hain</td><td><code>/safe-ai-coding:safe-ai-coding alerts on</code></td><td>Baar baar bajti sound, jawab dene wala popup (Windows) aur mobile push; <code>alerts sound off</code> sirf sound band karta hai (Chapter 15)</td></tr>
   </table>
   <h3>Ek mukammal misaal</h3>
   <ol class="steps">
@@ -457,7 +458,7 @@ CHANGE:WARN ^database/migrations/   .   schema changed but claude_docs/db.md was
   <h2 class="chapter"><span class="num">13</span>Dono taraf se test</h2>
   <p class="lead">Skill ko AI ki taraf se test kiya gaya: kya woh AI ki ghaltiyan aur hamlawaron ki koshishein pakadti hai? Aur insaan ki taraf se bhi: kya sahi code par khamosh rehti hai, aur kya istemal mein aasaan hai?</p>
     <div class="grid3">
-    <div class="tile teal"><span class="big">120 / 120</span><span class="what">self-test cases pass: 69 AI view, 22 human view, 23 safety, 6 report</span></div>
+    <div class="tile teal"><span class="big">125 / 125</span><span class="what">self-test cases pass: 69 AI view, 22 human view, 28 safety, 6 report</span></div>
     <div class="tile"><span class="big">40</span><span class="what">ek production Laravel codebase ke asal, insaanon ke likhe commits ghalat alarms ke liye scan kiye gaye</span></div>
     <div class="tile red"><span class="big">0</span><span class="what">attack repos ki malicious git config, hooks ya symlinks se chalne wali commands</span></div>
   </div>
@@ -549,6 +550,7 @@ CHANGE:WARN ^database/migrations/   .   schema changed but claude_docs/db.md was
     <tr><td>Windows par Python syntax check skip ho raha hai</td><td><code>python</code> command shayad Microsoft Store ka placeholder hai. Python install karein, ya chhod dein; baqi checks chalte rahenge.</td></tr>
     <tr><td>Ijazat ke sawal bohat zyada hain</td><td>Mode check karein: <code>strict</code> har qadam par poochta hai. Default par wapas jane ke liye "balanced mode" kahein; woh sirf nuqsan wale kaam par poochta hai. Sirf parhne wala kaam kabhi nahi poochta.</td></tr>
     <tr><td>Sirf ek project mein skill kaise band karein?</td><td>Us project mein <code>/safe-ai-coding off</code> likhein (plugin: <code>/safe-ai-coding:safe-ai-coding off</code>). Yeh Claude Code ki apni setting <code>.claude/settings.local.json</code> mein likhta hai, jo sirf aap ki hai aur commit nahi hoti, aur baqi settings ko nahi chhoota. Git copy: <code>/safe-ai-coding on</code> se wapas. Plugin: <code>/plugin</code>, ya <code>claude plugin enable safe-ai-coding@safe-ai-coding --scope local</code>. Poori team ke liye <code>off --shared</code>; agent pehle poochega. Asar agle session se hota hai.</td></tr>
+    <tr><td>Kya yeh bata sakti hai ke Claude mera intezar kar raha hai?</td><td><code>/safe-ai-coding alerts on</code> likhein; agent pehle poochega, kyunki yeh <code>~/.claude/settings.json</code> mein do hooks jodta hai. Phir jawab dene tak sound bajti rahegi: Windows ki apni, ya <code>alerts sound C:\path\sound.mp3</code> se aap ki apni file. <code>alerts sound off</code> sirf sound band karta hai. Jab VS Code saamne na ho to kone mein popup wahi ijazat ya sawal dikhata hai; Allow, Deny, "Deny with a message", options aur "Other" jawab sab wahin se chalte hain. Popup band karne se koi faisla nahi hota. Remote Control (<code>/rc</code>) chalu ho to Claude app par push aata hai. Settings: <code>~/.claude/safe-ai-alerts.json</code>. macOS aur Linux par sound aur notification hai, popup nahi.</td></tr>
     <tr><td>Kya doosre AI tools ke saath chal sakti hai?</td><td>Scripts har us jagah chalti hain jahan bash ho. <code>SKILL.md</code> ki hidayat Claude Code ke liye likhi gayi hain, lekin koi bhi agent un ki taraf ishara kar ke chalaya ja sakta hai.</td></tr>
     <tr><td>Kya mera code kahin bhejti hai?</td><td>Nahi. Sab kuch local chalta hai, aur report ka page bhi network se kuch load nahi karta.</td></tr>
   </table>

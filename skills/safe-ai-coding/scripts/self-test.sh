@@ -427,6 +427,40 @@ else
   for id in S21 S22 S23; do result SKIP safety "$id" "per-project switch" "perl or skill-switch.pl not available"; done
 fi
 
+# alerts: on and off change only their own hooks, and a broken settings file is left alone
+if command -v perl >/dev/null 2>&1 && [ -f "$HERE/alerts-setup.pl" ]; then
+  CC="$TMP/claude-config"; mkdir -p "$CC"
+  w "$CC/settings.json" '{ "model": "x", "hooks": { "PreToolUse": [ { "matcher": "Bash", "hooks": [ { "type": "command", "command": "echo keep-me" } ] } ] } }'
+  CLAUDE_CONFIG_DIR="$CC" perl "$HERE/alerts-setup.pl" on >/dev/null 2>&1
+  CLAUDE_CONFIG_DIR="$CC" perl "$HERE/alerts-setup.pl" on >/dev/null 2>&1
+  if [ "$(grep -c 'alert-hook' "$CC/settings.json")" = 2 ] && grep -q '"PermissionRequest"' "$CC/settings.json" &&
+     grep -q '"AskUserQuestion"' "$CC/settings.json" && grep -q 'echo keep-me' "$CC/settings.json"; then
+    result PASS safety S24 "alerts on adds both hooks once and keeps the other hooks"
+  else result FAIL safety S24 "alerts on adds both hooks once and keeps the other hooks" "$(tr -d '\n ' < "$CC/settings.json" | head -c 200)"; fi
+  CLAUDE_CONFIG_DIR="$CC" perl "$HERE/alerts-setup.pl" off >/dev/null 2>&1
+  if ! grep -q 'alert-hook' "$CC/settings.json" && ! grep -q 'inputNeededNotifEnabled' "$CC/settings.json" && grep -q 'echo keep-me' "$CC/settings.json"; then
+    result PASS safety S25 "alerts off removes only its own hooks and settings"
+  else result FAIL safety S25 "alerts off removes only its own hooks and settings" "$(tr -d '\n ' < "$CC/settings.json" | head -c 200)"; fi
+  printf '{ broken' > "$CC/settings.json"
+  CLAUDE_CONFIG_DIR="$CC" perl "$HERE/alerts-setup.pl" on >/dev/null 2>&1; rc=$?
+  if [ "$rc" = 2 ] && [ "$(cat "$CC/settings.json")" = '{ broken' ]; then
+    result PASS safety S26 "alerts never overwrite a settings file that is not valid JSON"
+  else result FAIL safety S26 "alerts never overwrite a settings file that is not valid JSON" "exit $rc"; fi
+  CLAUDE_CONFIG_DIR="$CC" perl "$HERE/alerts-setup.pl" sound off >/dev/null 2>&1
+  off=$(grep -c '"sound_on": false' "$CC/safe-ai-alerts.json" 2>/dev/null)
+  CLAUDE_CONFIG_DIR="$CC" perl "$HERE/alerts-setup.pl" sound on >/dev/null 2>&1
+  if [ "$off" = 1 ] && grep -q '"sound_on": true' "$CC/safe-ai-alerts.json" && [ "$(cat "$CC/settings.json")" = '{ broken' ]; then
+    result PASS safety S28 "alerts sound off and on change only the sound setting"
+  else result FAIL safety S28 "alerts sound off and on change only the sound setting" "off=$off"; fi
+else
+  for id in S24 S25 S26 S28; do result SKIP safety "$id" "alerts setup" "perl or alerts-setup.pl not available"; done
+fi
+hookerr=$(bash -n "$HERE/alert-hook.sh" 2>&1 | head -n 1)
+if [ -z "$hookerr" ] && command -v powershell >/dev/null 2>&1 && command -v cygpath >/dev/null 2>&1; then
+  hookerr=$(powershell -NoProfile -Command "\$e = \$null; [void][System.Management.Automation.Language.Parser]::ParseFile('$(cygpath -w "$HERE/alert-hook.ps1")', [ref]\$null, [ref]\$e); if (\$e.Count) { \$e[0].Message }" 2>&1 | tr -d '\r' | head -n 1)
+fi
+[ -z "$hookerr" ] && result PASS safety S27 "alert hook scripts parse without errors" || result FAIL safety S27 "alert hook scripts parse without errors" "$hookerr"
+
 # ------------------------------------------------------------------ report
 if command -v perl >/dev/null 2>&1 && [ -f "$HERE/make-report.pl" ]; then
   R="$TMP/report"; mkdir -p "$R"

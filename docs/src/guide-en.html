@@ -179,7 +179,7 @@ git clone --depth 1 https://github.com/sami-hussain-dev/safe-ai-coding.git "$HOM
 Copy-Item -Recurse "$HOME\safe-ai-coding\skills\safe-ai-coding" "$HOME\.claude\skills\"</pre>
       Pick one option, not both.</li>
     <li><b>Start a new session</b>Restart Claude Code or type <code>/reload-plugins</code>. The skill loads by itself; to call it directly, type <code>/safe-ai-coding:safe-ai-coding</code>.</li>
-    <li><b>Verify</b>Type <code>/safe-ai-coding:safe-ai-coding self-test</code> in Claude Code (120 cases should pass). With the git option you can also check the files:
+    <li><b>Verify</b>Type <code>/safe-ai-coding:safe-ai-coding self-test</code> in Claude Code (125 cases should pass). With the git option you can also check the files:
 <pre>bash ~/.claude/skills/safe-ai-coding/scripts/checksums.sh</pre></li>
     <li><b>Update and remove</b>Plugin: <code>/plugin</code> &rarr; Marketplaces &rarr; safe-ai-coding &rarr; Update; remove with <code>/plugin uninstall safe-ai-coding@safe-ai-coding</code>. Git: <code>git -C ~/safe-ai-coding pull</code>, then the copy command again; remove by deleting <code>~/.claude/skills/safe-ai-coding</code>. With the git copy the command is <code>/safe-ai-coding</code>.</li>
   </ol>
@@ -200,6 +200,7 @@ Copy-Item -Recurse "$HOME\safe-ai-coding\skills\safe-ai-coding" "$HOME\.claude\s
     <tr><td>You want a question before every step</td><td><code>/safe-ai-coding:safe-ai-coding mode strict</code></td><td>The agent asks before every command and file change (Chapter 9)</td></tr>
     <tr><td>Back to the default</td><td><code>/safe-ai-coding:safe-ai-coding mode balanced</code></td><td>The agent asks only before actions that can cause harm</td></tr>
     <tr><td>You do not want the skill in one project</td><td><code>/safe-ai-coding:safe-ai-coding off</code></td><td>The skill stops loading in this project only; <code>on</code> brings it back, <code>status</code> shows it (Chapter 15)</td></tr>
+    <tr><td>You want to hear Claude's questions and answer them from anywhere</td><td><code>/safe-ai-coding:safe-ai-coding alerts on</code></td><td>A repeating sound, a popup to answer from (Windows) and a mobile push; <code>alerts sound off</code> silences only the sound (Chapter 15)</td></tr>
   </table>
   <h3>A worked example</h3>
   <ol class="steps">
@@ -441,7 +442,7 @@ CHANGE:WARN ^database/migrations/   .   schema changed but claude_docs/db.md was
   <h2 class="chapter"><span class="num">13</span>Tested from both sides</h2>
   <p class="lead">The skill was tested from the AI's side (does it catch what AI gets wrong and what attackers try?) and the human side (does it stay quiet on good code, and is it usable?).</p>
     <div class="grid3">
-    <div class="tile teal"><span class="big">120 / 120</span><span class="what">self-test cases pass: 69 AI view, 22 human view, 23 safety, 6 report</span></div>
+    <div class="tile teal"><span class="big">125 / 125</span><span class="what">self-test cases pass: 69 AI view, 22 human view, 28 safety, 6 report</span></div>
     <div class="tile"><span class="big">40</span><span class="what">real, human-written commits of a production Laravel codebase scanned for false alarms</span></div>
     <div class="tile red"><span class="big">0</span><span class="what">commands executed from malicious git config, hooks or symlinks in the attack repositories</span></div>
   </div>
@@ -533,6 +534,7 @@ CHANGE:WARN ^database/migrations/   .   schema changed but claude_docs/db.md was
     <tr><td>Python syntax checks are skipped on Windows</td><td>The <code>python</code> command may be the Microsoft Store placeholder. Install Python, or ignore it; other checks still run.</td></tr>
     <tr><td>Too many permission questions</td><td>Check the mode: <code>strict</code> asks before every step. Say "balanced mode" to go back to the default, which asks only before harmful actions. Read-only work never asks.</td></tr>
     <tr><td>How do I switch it off in one project only?</td><td>In that project, type <code>/safe-ai-coding off</code> (plugin: <code>/safe-ai-coding:safe-ai-coding off</code>). It writes Claude Code's own setting into <code>.claude/settings.local.json</code>, which is personal and not committed, and keeps every other setting. Git copy: <code>/safe-ai-coding on</code> brings it back. Plugin: <code>/plugin</code>, or <code>claude plugin enable safe-ai-coding@safe-ai-coding --scope local</code>. For the whole team use <code>off --shared</code>; the agent asks first. It takes effect in the next session.</td></tr>
+    <tr><td>Can it tell me when Claude is waiting for me?</td><td>Type <code>/safe-ai-coding alerts on</code>; the agent asks first, because it adds two hooks to <code>~/.claude/settings.json</code>. A sound then repeats until you answer: the Windows sound, or your own file with <code>alerts sound C:\path\sound.mp3</code>. <code>alerts sound off</code> silences only the sound. When VS Code is not in front, a popup in the corner shows the same permission or question; Allow, Deny, "Deny with a message", the options and an "Other" answer all work from there. Closing it decides nothing. The Claude app gets a push while Remote Control (<code>/rc</code>) is connected. Settings: <code>~/.claude/safe-ai-alerts.json</code>. macOS and Linux get the sound and a notification, without the popup.</td></tr>
     <tr><td>Can I use it with other AI tools?</td><td>The scripts work anywhere with bash. The instructions in <code>SKILL.md</code> are written for Claude Code, but any agent can be pointed at them.</td></tr>
     <tr><td>Does it send my code anywhere?</td><td>No. Everything runs locally. The report page itself loads nothing from the network.</td></tr>
   </table>

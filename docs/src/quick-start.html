@@ -73,7 +73,7 @@ Copy-Item -Recurse "$HOME\safe-ai-coding\skills\safe-ai-coding" "$HOME\.claude\s
   <h3>Check it works (optional, 30 seconds)</h3>
   <p>Type this inside Claude Code:</p>
 <pre>/safe-ai-coding:safe-ai-coding self-test
-<span class="c"># Result: 120 passed, 0 failed</span></pre>
+<span class="c"># Result: 125 passed, 0 failed</span></pre>
   <table>
     <tr><th style="width:30%">You need</th><th>Notes</th></tr>
     <tr><td>Claude Code</td><td>Terminal, VS Code, JetBrains or desktop app</td></tr>
@@ -94,6 +94,7 @@ Copy-Item -Recurse "$HOME\safe-ai-coding\skills\safe-ai-coding" "$HOME\.claude\s
     <tr><td>After installing or updating</td><td><code>/safe-ai-coding:safe-ai-coding self-test</code></td><td>Proof that every check works</td></tr>
     <tr><td>You want a question before every step</td><td><code>/safe-ai-coding:safe-ai-coding mode strict</code></td><td>The agent asks before every command and file change; <code>mode balanced</code> goes back to the default</td></tr>
     <tr><td>You do not want it in one project</td><td><code>/safe-ai-coding:safe-ai-coding off</code></td><td>The skill stops loading in that project only; <code>on</code> brings it back</td></tr>
+    <tr><td>You want to hear when Claude waits for you</td><td><code>/safe-ai-coding:safe-ai-coding alerts on</code></td><td>A repeating sound and a popup to answer from; <code>alerts sound off</code> silences only the sound</td></tr>
   </table>
   <h3>What a permission request looks like</h3>
   <div class="gate"><div class="head">The agent stops and asks</div>
