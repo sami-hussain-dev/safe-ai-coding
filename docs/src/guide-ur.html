@@ -195,7 +195,7 @@ git clone --depth 1 https://github.com/sami-hussain-dev/safe-ai-coding.git "$HOM
 Copy-Item -Recurse "$HOME\safe-ai-coding\skills\safe-ai-coding" "$HOME\.claude\skills\"</pre>
       Dono mein se ek hi tareeqa chunein.</li>
     <li><b>Naya session shuru karein</b>Claude Code dobara kholein ya <code>/reload-plugins</code> likhein. Skill khud load hoti hai; seedha chalane ke liye <code>/safe-ai-coding:safe-ai-coding</code>.</li>
-    <li><b>Tasdeeq karein</b>Claude Code mein <code>/safe-ai-coding:safe-ai-coding self-test</code> likhein (115 cases pass hone chahiye). Git wale tareeqe mein files ki tasdeeq:
+    <li><b>Tasdeeq karein</b>Claude Code mein <code>/safe-ai-coding:safe-ai-coding self-test</code> likhein (120 cases pass hone chahiye). Git wale tareeqe mein files ki tasdeeq:
 <pre>bash ~/.claude/skills/safe-ai-coding/scripts/checksums.sh</pre></li>
     <li><b>Update aur hatana</b>Plugin: <code>/plugin</code> &rarr; Marketplaces &rarr; safe-ai-coding &rarr; Update; hatane ke liye <code>/plugin uninstall safe-ai-coding@safe-ai-coding</code>. Git: <code>git -C ~/safe-ai-coding pull</code>, phir copy wali command dobara; hatane ke liye <code>~/.claude/skills/safe-ai-coding</code> delete karein. Git wale tareeqe mein command <code>/safe-ai-coding</code> hai.</li>
   </ol>
@@ -213,6 +213,9 @@ Copy-Item -Recurse "$HOME\safe-ai-coding\skills\safe-ai-coding" "$HOME\.claude\s
     <tr><td>Apni uncommitted tabdeeliyan</td><td><code>/safe-ai-coding:safe-ai-coding review HEAD</code></td><td>Wahi, sirf working tree ke liye</td></tr>
     <tr><td>Kaam ka document chahiye</td><td>"Report do", "PDF bana do"</td><td>Masail, fixes aur saboot ki khoobsurat PDF (Chapter 10)</td></tr>
     <tr><td>Skill badli ya kisi se mili</td><td><code>/safe-ai-coding:safe-ai-coding self-test</code></td><td>Har check ka PASS / FAIL</td></tr>
+    <tr><td>Har qadam se pehle sawal chahiye</td><td><code>/safe-ai-coding:safe-ai-coding mode strict</code></td><td>Agent har command aur har file change se pehle poochta hai (Chapter 9)</td></tr>
+    <tr><td>Wapas default par</td><td><code>/safe-ai-coding:safe-ai-coding mode balanced</code></td><td>Agent sirf nuqsan wale kaam se pehle poochta hai</td></tr>
+    <tr><td>Kisi ek project mein skill nahi chahiye</td><td><code>/safe-ai-coding:safe-ai-coding off</code></td><td>Sirf is project mein skill load hona band; <code>on</code> se wapas, <code>status</code> se haal maloom (Chapter 15)</td></tr>
   </table>
   <h3>Ek mukammal misaal</h3>
   <ol class="steps">
@@ -240,6 +243,7 @@ Copy-Item -Recurse "$HOME\safe-ai-coding\skills\safe-ai-coding" "$HOME\.claude\s
     <tr><td>7</td><td>Repo se bahar jati symlinks</td><td>Aise links jin ka target project se bahar ho, maslan aap ke home folder ki koi key</td></tr>
     <tr><td>8</td><td>Chhupe unicode characters</td><td>Bidi controls, tag characters aur zero-width characters, jo text ko asal se mukhtalif dikhate hain</td></tr>
     <tr><td>9</td><td>Executables</td><td>Binaries, scripts aur executable bit wali files</td></tr>
+    <tr><td>10</td><td>Pehle se commit hue secrets aur khula data</td><td>Commit hui <code>.env</code> files, asli lagne wali keys (mask kar ke dikhayi jati hain), sab ke liye khule Firebase rules, public build variables mein secrets</td></tr>
   </table>
   <h3>Nateeja kaise parhein</h3>
   <ul>
@@ -299,6 +303,7 @@ Copy-Item -Recurse "$HOME\safe-ai-coding\skills\safe-ai-coding" "$HOME\.claude\s
     <div class="card"><h4>Supply chain aur agent config</h4><ul>
       <li>install hooks, unpinned ya URL dependencies</li>
       <li>custom registries, ghair-mehfooz package sources</li>
+      <li>integrity (SRI) ke baghair CDN scripts aur stylesheets</li>
       <li>CI ki tabdeeli, agent ki instruction ya settings files</li>
       <li>repo se bahar jati symlinks</li>
       <li>prompt-injection text, chhupe characters</li>
@@ -336,11 +341,21 @@ WARN  .claude/safe-code-rules.tsv  [project rule] routes changed but no permissi
 <section class="chapter">
   <h2 class="chapter"><span class="num">9</span>Ijazat ka darwaza (permission gate)</h2>
   <p class="lead">Har khatarnak kaam se pehle agent rukta hai aur poochta hai. Request pehle mumkina nuqsan batati hai, taake aap saare facts saamne rakh kar faisla karein.</p>
+  <h3>Gate ke do mode</h3>
+  <table>
+    <tr><th style="width:22%">Mode</th><th style="width:40%">Kab poochta hai</th><th>Baghair poochhe kya karta hai</th></tr>
+    <tr><td><code>balanced</code> (default)</td><td>Sirf neeche wali table ke kaam, yani jin se nuqsan ho sakta hai</td><td>Baqi sab: parhna, search, kaam ke andar aam code edits, syntax checks, local tests</td></tr>
+    <tr><td><code>strict</code></td><td>Har command aur har file change, aur neeche wali table bhi</td><td>Sirf parhna, search, aur <code>git status/diff/log/show</code></td></tr>
+  </table>
+  <p>Session mein "strict mode" ya <code>/safe-ai-coding:safe-ai-coding mode strict</code> kahein, aur wapas aane ke liye <code>mode balanced</code>. Kisi ek repo ka default <code>strict</code> karna ho to us ki <code>.claude/safe-code-conventions.md</code> mein <code>Gate mode: strict</code> ki line daal dein. Kisi aur jagah likha text mode nahi badal sakta, aur koi bhi mode neeche wali table band nahi karta.</p>
+  <h3>In par hamesha haan chahiye</h3>
   <table>
     <tr><th style="width:38%">Aap ki saaf haan zaroori hai</th><th>Kyun</th></tr>
     <tr><td>Koi external ya untrusted file: chalana, import karna, project mein copy karna, ya us ki baat maanna</td><td>Chhupi hidayat, malware, license ke masail</td></tr>
     <tr><td>Aisi script ya binary chalana jo review shuda project ka hissa nahi (<code>npx</code>, <code>curl | sh</code>, installers)</td><td>Yeh aap ke poore ikhtiyar ke saath chalti hai</td></tr>
     <tr><td>Dependencies install, update ya remove karna</td><td>Milte julte naam, install scripts, takrao</td></tr>
+    <tr><td>Product mein 3rd-party code daalna: CDN script ya stylesheet, web fonts, widgets, tracking snippets, bahar ke SDKs</td><td>Un ka code har user ke liye chalta hai; ek hacked host sab ko nuqsan deta hai; visitors ka data vendor ke paas jata hai</td></tr>
+    <tr><td>Aisa code likhna jo hole ya data leak bana sake: bahar data bhejne ka naya raasta, login ke baghair endpoint, personal data ka export, uploads, login, permission, session, token ya encryption mein tabdeeli</td><td>Hole ya leak code ke saath ship ho jata hai</td></tr>
     <tr><td>Machine se kuch bhi bahar bhejna</td><td>Code, secrets ya personal data wapas nahi aa sakte</td></tr>
     <tr><td>Secrets ya personal data parhna ya print karna</td><td>Yeh transcripts, logs ya reports mein pohnch jate hain</td></tr>
     <tr><td>Database mein kuch bhi likhna, ya koi bhi non-local database</td><td>Data loss, outage; database reset karne wale tests use saaf kar dete hain</td></tr>
@@ -366,7 +381,7 @@ Mehfooz option: pehle apne local database par chala kar nateeja dikha doon
     <li>Na-maloom nuqsan bhi nuqsan likha jata hai: "Maine verify nahi kiya ke ye kya karta hai."</li>
     <li>Har request aur aap ka jawab aakhri report mein darj hota hai.</li>
   </ul>
-  <div class="callout ok"><b>Ijazat nahi chahiye (taake gate ki ahmiyat bani rahe)</b><p>Project parhna aur search karna, <code>git status/diff/log/show</code>, skill ki apni scripts (aap ki maangi hui report banana bhi), syntax checks, aise tests jo shared database ko na chhuein, kaam ke daire ke andar tabdeeli, aur ghair-khufia settings parhna, jaise database ka host aur naam.</p></div>
+  <div class="callout ok"><b>Balanced mode mein ijazat nahi chahiye (taake gate ki ahmiyat bani rahe)</b><p>Project parhna aur search karna, <code>git status/diff/log/show</code>, skill ki apni scripts (aap ki maangi hui report banana bhi), syntax checks, aise tests jo shared database ko na chhuein, kaam ke daire ke andar tabdeeli, aur ghair-khufia settings parhna, jaise database ka host aur naam.</p></div>
 </section>
 
 <section class="chapter">
@@ -442,12 +457,12 @@ CHANGE:WARN ^database/migrations/   .   schema changed but claude_docs/db.md was
   <h2 class="chapter"><span class="num">13</span>Dono taraf se test</h2>
   <p class="lead">Skill ko AI ki taraf se test kiya gaya: kya woh AI ki ghaltiyan aur hamlawaron ki koshishein pakadti hai? Aur insaan ki taraf se bhi: kya sahi code par khamosh rehti hai, aur kya istemal mein aasaan hai?</p>
     <div class="grid3">
-    <div class="tile teal"><span class="big">115 / 115</span><span class="what">self-test cases pass: 68 AI view, 21 human view, 20 safety, 6 report</span></div>
+    <div class="tile teal"><span class="big">120 / 120</span><span class="what">self-test cases pass: 69 AI view, 22 human view, 23 safety, 6 report</span></div>
     <div class="tile"><span class="big">40</span><span class="what">ek production Laravel codebase ke asal, insaanon ke likhe commits ghalat alarms ke liye scan kiye gaye</span></div>
     <div class="tile red"><span class="big">0</span><span class="what">attack repos ki malicious git config, hooks ya symlinks se chalne wali commands</span></div>
   </div>
   <h3>AI view: kya ghalti pakadti hai?</h3>
-  <p>68 cases hain, har ek AI ki aam ghalti ya hamla. Har ek ka sahi darje ke saath pakda jana zaroori hai:</p>
+  <p>69 cases hain, har ek AI ki aam ghalti ya hamla. Har ek ka sahi darje ke saath pakda jana zaroori hai:</p>
   <ul>
     <li>SQL, command aur path injection, SSRF, eval</li>
     <li>keys, private keys aur <code>.env</code> files</li>
@@ -462,7 +477,7 @@ CHANGE:WARN ^database/migrations/   .   schema changed but claude_docs/db.md was
   </ul>
   <p>Saare 68 pakde gaye.</p>
   <h3>Human view: kya sahi code par khamosh rehti hai?</h3>
-  <p>Sahi, rozmarra code ke 21 cases par koi HIGH ya WARN nahi aana chahiye:</p>
+  <p>Sahi, rozmarra code ke 22 cases par koi HIGH ya WARN nahi aana chahiye:</p>
   <ul>
     <li>bound queries, aur <code>password</code> naam ke validation rules</li>
     <li>"Loading..." aur doston jaisa UI text, <code>placeholder</code> attributes</li>
@@ -492,7 +507,7 @@ CHANGE:WARN ^database/migrations/   .   schema changed but claude_docs/db.md was
     <li>ghair-mehfooz <code>.npmrc</code>, aur doosre host ki taraf ishara karti lock file</li>
     <li>repo se bahar jati symlinks</li>
   </ul>
-  <p>Har cheez report hui, koi marker file nahi bani, aur koi control character output tak nahi pohncha.</p>
+  <p>Har cheez report hui, koi marker file nahi bani, aur koi control character output tak nahi pohncha. Commit guard ne key wala commit rok diya, aur project switch ne baqi settings ko nahi chhua aur kharab JSON wali settings file ko overwrite karne se inkar kiya.</p>
   <h3>Report</h3>
   <p>Renderer ko dushman input diya gaya: script tags, <code>onerror</code> wala image, AWS jaisi key, ID number aur password. Sab escape ya mask ho gaya. Page mein koi script ya remote resource nahi, aur dono zabaanon ki report PDF ban jati hai.</p>
   <div class="callout"><b>Testing mein mile aur theek kiye gaye masail</b>
@@ -532,7 +547,8 @@ CHANGE:WARN ^database/migrations/   .   schema changed but claude_docs/db.md was
     <tr><td>Bohat zyada findings</td><td>Pehle HIGH theek karein. Sab dekhne ke liye <code>--all</code>, aur project rules ya conventions daalein taake agla agent woh pattern na dohraye.</td></tr>
     <tr><td>PDF nahi bani, sirf HTML</td><td>Koi chalne wala browser ya wkhtmltopdf nahi mila, ya jo mila woh fail hua. HTML ko kisi bhi browser mein khol kar Print, phir Save as PDF karein. Ya <code>SAFE_AI_PDF_BROWSER</code> mein apne browser ka path de dein.</td></tr>
     <tr><td>Windows par Python syntax check skip ho raha hai</td><td><code>python</code> command shayad Microsoft Store ka placeholder hai. Python install karein, ya chhod dein; baqi checks chalte rahenge.</td></tr>
-    <tr><td>Ijazat ke sawal bohat zyada hain</td><td>Sirf parhne wala kaam kabhi nahi poochta. Agar poochhe to bata dein; <code>SKILL.md</code> mein "No permission needed" ki list hi asal rule hai.</td></tr>
+    <tr><td>Ijazat ke sawal bohat zyada hain</td><td>Mode check karein: <code>strict</code> har qadam par poochta hai. Default par wapas jane ke liye "balanced mode" kahein; woh sirf nuqsan wale kaam par poochta hai. Sirf parhne wala kaam kabhi nahi poochta.</td></tr>
+    <tr><td>Sirf ek project mein skill kaise band karein?</td><td>Us project mein <code>/safe-ai-coding off</code> likhein (plugin: <code>/safe-ai-coding:safe-ai-coding off</code>). Yeh Claude Code ki apni setting <code>.claude/settings.local.json</code> mein likhta hai, jo sirf aap ki hai aur commit nahi hoti, aur baqi settings ko nahi chhoota. Git copy: <code>/safe-ai-coding on</code> se wapas. Plugin: <code>/plugin</code>, ya <code>claude plugin enable safe-ai-coding@safe-ai-coding --scope local</code>. Poori team ke liye <code>off --shared</code>; agent pehle poochega. Asar agle session se hota hai.</td></tr>
     <tr><td>Kya doosre AI tools ke saath chal sakti hai?</td><td>Scripts har us jagah chalti hain jahan bash ho. <code>SKILL.md</code> ki hidayat Claude Code ke liye likhi gayi hain, lekin koi bhi agent un ki taraf ishara kar ke chalaya ja sakta hai.</td></tr>
     <tr><td>Kya mera code kahin bhejti hai?</td><td>Nahi. Sab kuch local chalta hai, aur report ka page bhi network se kuch load nahi karta.</td></tr>
   </table>

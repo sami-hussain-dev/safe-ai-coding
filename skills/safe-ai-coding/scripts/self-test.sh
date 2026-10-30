@@ -199,6 +199,7 @@ w "$C/c/prompt.php"    "<?php \$m = [['role' => 'system', 'content' => 'You help
 w "$C/c/hf.py"         "token = \"$HFT\""
 w "$C/c/net.tf"        'ingress { from_port = 5432 to_port = 5432 cidr_blocks = ["0.0.0.0/0"] }'
 w "$C/src/logreq.js"   'logger.info(req.body);'
+w "$C/resources/views/cdn.blade.php" '<script src="https://cdn.example.invalid/lib@1.2.3/lib.js"></script>'
 plumb_link "$C" leak '../../../.ssh/id_rsa'
 
 (cd "$C" && bash "$DIFF" --format=tsv HEAD > "$TMP/catch.tsv" 2>"$TMP/catch.err"); rc=$?
@@ -280,6 +281,7 @@ expect "$T" AI A64 WARN c/prompt.php    "system prompt"               "user inpu
 expect "$T" AI A65 HIGH c/hf.py         "AI provider token"           "Hugging Face token in code"
 expect "$T" AI A66 HIGH c/net.tf        "open to the whole internet"  "database port open to 0.0.0.0/0"
 expect "$T" AI A67 WARN src/logreq.js   "whole request logged"        "whole request body written to a log"
+expect "$T" AI A68 WARN resources/views/cdn.blade.php "without integrity" "CDN script without integrity (SRI)"
 
 # ------------------------------------------------------------------ human view
 Q="$TMP/quiet"; newrepo "$Q"; scaffold "$Q"; commit "$Q" base
@@ -320,6 +322,7 @@ w "$Q/q/firestore.rules" 'match /users/{userId} { allow read: if request.auth !=
 w "$Q/src/name.js"     'const appName = import.meta.env.VITE_APP_NAME;'
 w "$Q/src/answer.js"   'el.textContent = completion.choices[0].message.content;'
 w "$Q/q/rls.sql"       'ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;'
+w "$Q/resources/views/cdn-ok.blade.php" '<script src="https://cdn.example.invalid/lib@1.2.3/lib.js" integrity="sha384-AbCdEf0123456789" crossorigin="anonymous"></script>'
 (cd "$Q" && bash "$DIFF" --format=tsv HEAD > "$TMP/quiet.tsv" 2>"$TMP/quiet.err")
 T="$TMP/quiet.tsv"
 quiet "$T" human H01 q/builder.php   "query builder with a bound LIKE value"
@@ -343,6 +346,7 @@ quiet "$T" human H18 q/firestore.rules "Firebase rule limited to the signed-in o
 quiet "$T" human H19 src/name.js     "harmless public build variable (VITE_APP_NAME)"
 quiet "$T" human H20 src/answer.js   "LLM output shown as plain text"
 quiet "$T" human H21 q/rls.sql       "row level security switched on"
+quiet "$T" human H22 resources/views/cdn-ok.blade.php "CDN script pinned with integrity (SRI)"
 
 # ------------------------------------------------------------------ safety
 A="$TMP/attack"; newrepo "$A"; w "$A/a.php" '<?php echo 1;'; commit "$A" base
@@ -402,6 +406,27 @@ else result PASS safety S19 "pre-commit hook blocks a commit containing a secret
 (cd "$GH" && bash "$HERE/install-git-hook.sh" --remove >/dev/null 2>&1)
 [ -f "$GH/.git/hooks/pre-commit" ] && result FAIL safety S20 "hook removes cleanly" || result PASS safety S20 "hook removes cleanly"
 
+# per-project switch: off and on change only their own entry, and a broken settings file is left alone
+if command -v perl >/dev/null 2>&1 && [ -f "$HERE/skill-switch.pl" ]; then
+  SP="$TMP/switch"; newrepo "$SP"; mkdir -p "$SP/.claude"
+  w "$SP/.claude/settings.local.json" '{ "permissions": { "allow": ["Bash(ls:*)"] } }'
+  SAFE_AI_INSTALL=folder perl "$HERE/skill-switch.pl" off "$SP" >/dev/null 2>&1
+  if grep -q '"safe-ai-coding": "user-invocable-only"' "$SP/.claude/settings.local.json" && grep -qF 'Bash(ls:*)' "$SP/.claude/settings.local.json"; then
+    result PASS safety S21 "off writes the project switch and keeps the other settings"
+  else result FAIL safety S21 "off writes the project switch and keeps the other settings" "$(tr -d '\n' < "$SP/.claude/settings.local.json" | head -c 200)"; fi
+  SAFE_AI_INSTALL=folder perl "$HERE/skill-switch.pl" on "$SP" >/dev/null 2>&1
+  if ! grep -q 'safe-ai-coding' "$SP/.claude/settings.local.json" && grep -qF 'Bash(ls:*)' "$SP/.claude/settings.local.json"; then
+    result PASS safety S22 "on removes the project switch again"
+  else result FAIL safety S22 "on removes the project switch again" "$(tr -d '\n' < "$SP/.claude/settings.local.json" | head -c 200)"; fi
+  printf '{ broken' > "$SP/.claude/settings.json"
+  SAFE_AI_INSTALL=folder perl "$HERE/skill-switch.pl" off --shared "$SP" >/dev/null 2>&1; rc=$?
+  if [ "$rc" = 2 ] && [ "$(cat "$SP/.claude/settings.json")" = '{ broken' ]; then
+    result PASS safety S23 "a settings file that is not valid JSON is never overwritten"
+  else result FAIL safety S23 "a settings file that is not valid JSON is never overwritten" "exit $rc"; fi
+else
+  for id in S21 S22 S23; do result SKIP safety "$id" "per-project switch" "perl or skill-switch.pl not available"; done
+fi
+
 # ------------------------------------------------------------------ report
 if command -v perl >/dev/null 2>&1 && [ -f "$HERE/make-report.pl" ]; then
   R="$TMP/report"; mkdir -p "$R"
@@ -412,7 +437,7 @@ if command -v perl >/dev/null 2>&1 && [ -f "$HERE/make-report.pl" ]; then
     result PASS report R02 "Roman Urdu example report renders"
   else result FAIL report R02 "Roman Urdu example report renders"; fi
   cat > "$R/hostile.json" <<EOF
-{ "title": "<script>alert(1)</script> & \"quotes\"", "summary": "key $AWS and id $CNIC",
+{ "title": "<script>alert(1)</script> & \"quotes\"", "summary": "key $AWS, token $HFT and id $CNIC",
   "problems": [ { "id": "P1", "title": "<img src=x onerror=alert(2)>", "severity": "high", "where": "a.php:1" } ],
   "fixes": [ { "id": "F1", "title": "fix", "before": "<?php \$password = 'hunter2hunter2';", "after": "<?php \$password = config('x');" } ] }
 EOF
@@ -420,7 +445,7 @@ EOF
     if grep -q '<script>alert' "$R/hostile.html" || grep -q '<img src=x' "$R/hostile.html"; then
       result FAIL report R03 "hostile report text is escaped" "raw markup found"
     else result PASS report R03 "hostile report text is escaped"; fi
-    if grep -qF "$AWS" "$R/hostile.html" || grep -qF "$CNIC" "$R/hostile.html" || grep -qF 'hunter2hunter2' "$R/hostile.html"; then
+    if grep -qF "$AWS" "$R/hostile.html" || grep -qF "$HFT" "$R/hostile.html" || grep -qF "$CNIC" "$R/hostile.html" || grep -qF 'hunter2hunter2' "$R/hostile.html"; then
       result FAIL report R04 "secrets and ID numbers are masked in the report" "unmasked value found"
     else result PASS report R04 "secrets and ID numbers are masked in the report"; fi
     if grep -qiE '<script|src="https?:|href="https?:|@import|url\(["'"'"']?https?:' "$R/hostile.html"; then

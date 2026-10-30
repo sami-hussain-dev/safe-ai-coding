@@ -10,7 +10,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ![Version](https://img.shields.io/badge/version-2.1.0-indigo)
 ![Claude Code](https://img.shields.io/badge/Claude%20Code-skill%20%2B%20plugin-0f7f74)
-![Self-test](https://img.shields.io/badge/self--test-115%2F115%20passing-success)
+![Self-test](https://img.shields.io/badge/self--test-120%2F120%20passing-success)
 
 Created by **Sami Hussain** · [x8code.com](https://x8code.com) · samihussain9t9@gmail.com
 
@@ -23,6 +23,8 @@ Created by **Sami Hussain** · [x8code.com](https://x8code.com) · samihussain9t
 | Without safe-ai-coding | With safe-ai-coding |
 | --- | --- |
 | The agent installs packages, runs migrations or pushes without warning | It stops first and tells you what could go wrong, whether it can be undone, and a safer option |
+| The agent either asks about everything or about nothing | Two gate modes: `balanced` (default) asks only before harmful actions; `strict` asks before every step |
+| A CDN `<script>` or tracking snippet slips in, and its host can run code for every visitor | Adding third-party code needs your yes, and CDN scripts without integrity (SRI) are flagged |
 | AI invents methods, routes, views and imports that do not exist | New code is checked: every referenced class, method, view, route and import must exist |
 | `// ... rest of the code unchanged` silently deletes real code | Placeholders and pasted chat text are flagged as HIGH |
 | SQL injection, leaked keys and missing ownership checks slip into reviews | 60+ security checks run on every change, in any language |
@@ -75,12 +77,13 @@ Start a new Claude Code session. Use one option, not both.
 | Plugin | `/safe-ai-coding:safe-ai-coding` |
 | Git copy | `/safe-ai-coding` |
 
-**Check it works:** type `/safe-ai-coding:safe-ai-coding self-test` (plugin) or `/safe-ai-coding self-test` (git copy). You should see `115 passed, 0 failed`. When the skill is in use, Claude Code shows a "Skill(safe-ai-coding)" line.
+**Check it works:** type `/safe-ai-coding:safe-ai-coding self-test` (plugin) or `/safe-ai-coding self-test` (git copy). You should see `120 passed, 0 failed`. When the skill is in use, Claude Code shows a "Skill(safe-ai-coding)" line.
 
 | Task | Plugin | Git |
 | --- | --- | --- |
 | Update | `/plugin` → Marketplaces → safe-ai-coding → Update | `git -C ~/safe-ai-coding pull`, then run the copy command again |
 | Remove | `/plugin uninstall safe-ai-coding@safe-ai-coding` | delete `~/.claude/skills/safe-ai-coding` |
+| Switch off for one project | `/safe-ai-coding:safe-ai-coding off` in that project | `/safe-ai-coding off` in that project |
 
 **Requirements:**
 
@@ -99,6 +102,33 @@ Just ask Claude Code for the work in your own words; the skill loads by itself (
 | Before you merge | `/safe-ai-coding:safe-ai-coding review main` | A findings table and a verdict: Ready, Ready with notes, or Not ready |
 | You need a document | "Give me a PDF report of this work" | A PDF: what was wrong, what was fixed, the proof |
 | After installing or updating | `/safe-ai-coding:safe-ai-coding self-test` | Proof that every check works on your machine |
+| You want a question before every step | `/safe-ai-coding:safe-ai-coding mode strict` | The agent asks before every command and file change |
+| Back to the default | `/safe-ai-coding:safe-ai-coding mode balanced` | The agent asks only before actions that can cause harm |
+| You do not want the skill in one project | `/safe-ai-coding:safe-ai-coding off` | The skill stops loading in this project only; everywhere else it stays on |
+| You want it back | `/safe-ai-coding on` (git copy), or `/plugin` for the plugin | The skill loads again in this project |
+| You want to know if it is on here | `/safe-ai-coding:safe-ai-coding status` | What this project's settings say |
+
+**Gate modes.** By default the skill runs in `balanced` mode: the agent works without interrupting you and stops only before an action that can cause harm, such as:
+
+- a destructive or outward-facing command
+- an install, a CDN script or another piece of third-party code
+- a database write
+- code that could open a security hole or leak data
+
+`strict` mode asks before every command and file change as well. To make `strict` the default for a repository, add the line `Gate mode: strict` to `.claude/safe-code-conventions.md`. Neither mode switches the harm checks off.
+
+**Switch it off for one project.** Open Claude Code in that project and type `/safe-ai-coding off` (`/safe-ai-coding:safe-ai-coding off` for the plugin). The skill writes Claude Code's own setting into `.claude/settings.local.json`, which is personal and not committed. Every other project keeps the skill. The change takes effect in the next session.
+
+| Installed as | What `off` writes | How to switch it back on |
+| --- | --- | --- |
+| Git copy | `"skillOverrides": { "safe-ai-coding": "user-invocable-only" }`: the skill no longer loads by itself, but you can still call it | `/safe-ai-coding on` |
+| Plugin | `"enabledPlugins": { "safe-ai-coding@safe-ai-coding": false }`: the plugin is disabled in this project | `/plugin`, or `claude plugin enable safe-ai-coding@safe-ai-coding --scope local` |
+
+Notes:
+
+- **The whole team:** to switch it off for everyone who works on the repository, ask for `off --shared`. That writes `.claude/settings.json`, which is committed, so the agent asks first.
+- **Without the skill:** the same works by hand. Run `perl ~/.claude/skills/safe-ai-coding/scripts/skill-switch.pl off` inside the project, or use Claude Code's `/skills` menu.
+- **Your other settings stay:** the script keeps every other setting in the file, and it never overwrites a settings file that is not valid JSON.
 
 ## Screenshots
 
@@ -160,16 +190,16 @@ WARN  view 'country.missing' not found (expected resources/views/country/missing
 
 **5. Hostile report input.** Script tags, an `onerror` image, an AWS-style key, a password and an ID number were all escaped or masked in the PDF.
 
-**6. The self-test.** It covers 115 cases:
+**6. The self-test.** It covers 120 cases:
 
 | Group | Cases | What they prove |
 | --- | --- | --- |
-| AI view | 68 | Attacks and AI mistakes are caught |
-| Human view | 21 | Good code stays quiet |
-| Safety | 20 | Hostile repositories are harmless |
+| AI view | 69 | Attacks and AI mistakes are caught |
+| Human view | 22 | Good code stays quiet |
+| Safety | 23 | Hostile repositories are harmless, and the project switch never damages a settings file |
 | Report | 6 | Reports are escaped, masked and print to PDF |
 
-All 115 pass.
+All 120 pass.
 
 ## Limitations
 
